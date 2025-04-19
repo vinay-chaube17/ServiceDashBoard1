@@ -1,0 +1,136 @@
+﻿@model IEnumerable<ServiceDashBoard1.Models.ComplaintRegistration>
+
+@{
+    ViewData["Title"] = "Service DashBoard";
+    var userRole = Context.Session.GetString("Role"); // Current logged-in user ka role
+
+    // ✅ Set dashboard title based on user role
+    var dashboardTitle = userRole.ToLower() switch
+    {
+        "sparepart" => "SparePart Dashboard",
+        "field engineer" => "Field Engineer Dashboard",  // ✅ This is the correct match
+        "coordinator" => "Dashboard",
+        _ => "Service Dashboard"
+    };
+}
+
+<div style="text-align: center;">
+    <h1>@dashboardTitle</h1>
+</div>
+
+<div class="d-flex justify-content-center mb-3">
+    <input type="text" id="searchInput" class="form-control w-50 me-2" placeholder="Search by Machine Serial No or Contact Person" />
+    <button class="btn btn-primary" onclick="searchTable()">Search</button>
+</div>
+
+<div class="d-flex justify-content-center">
+    <table class="table table-bordered table-striped text-center">
+        <thead>
+            <tr>
+                <th>Machine Serial Number</th>
+                <th>Company Name</th>
+                <th>Contact Person</th>
+                <th>Token Number</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @{
+                var FModel = Model?.Where(item => item.Role.Trim().ToLower() == userRole.Trim().ToLower()).ToList();
+            }
+            @if (FModel != null && FModel.Any())
+            {
+                @foreach (var item in FModel)
+                {
+                    if (item.Role == "Coordinator" )
+                    {
+                        continue;
+                    }
+                    <tr class="searchable-row"
+                        data-machine="@item.MachineSerialNo?.ToLower()"
+                        data-contactperson="@item.ContactPerson?.ToLower()"
+                        data-status="@item.Status?.ToLower()">
+                        <td>@Html.DisplayFor(modelItem => item.MachineSerialNo)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CompanyName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.ContactPerson)</td>
+                       <td>
+                            <a  asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none">
+                                @item.TokenNumber
+                            </a>
+                        </td>
+                      
+                        <td><strong>@item.Status</strong></td> @* ✅ Status ko sirf display kiya *@
+                        <td>
+
+                            
+                            <a asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-warning">View</a>
+
+                            
+                           
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7">No records found</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<script>
+    function searchTable() {
+        const input = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll(".searchable-row");
+
+        rows.forEach(row => {
+            const machine = (row.dataset.machine || "").toLowerCase();
+            const contact = (row.dataset.contactperson || "").toLowerCase();
+
+            if (machine.includes(input) || contact.includes(input)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // ✅ Hide completed/cancelled rows initially
+    window.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll(".searchable-row");
+        rows.forEach(row => {
+            const status = (row.dataset.status || "").toLowerCase();
+            if (status === "completed" || status === "cancelled") {
+                row.style.display = "none";
+            }
+        });
+    });
+
+    // ✅ Live search on input
+    document.getElementById("searchInput").addEventListener("input", function () {
+        const value = this.value.trim().toLowerCase();
+
+        if (value === "") {
+            document.querySelectorAll(".searchable-row").forEach(row => {
+                let status = row.dataset.status;
+                row.style.display = (status === "cancelled" || status === "completed") ? "none" : "";
+            });
+        } else {
+            searchTable();
+        }
+    });
+
+    // ✅ Optional: Search on Enter
+    document.getElementById("searchInput").addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            searchTable();
+        }
+    });
+</script>
+
+

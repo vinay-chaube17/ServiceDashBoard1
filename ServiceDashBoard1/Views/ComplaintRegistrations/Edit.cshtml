@@ -1,0 +1,525 @@
+﻿@model ServiceDashBoard1.Models.ComplaintRegistration
+
+
+@{
+    var selectedSubProblems = ViewBag.SelectedSubProblems ?? "";  // Null hone pe empty string set kar raha hai
+}
+
+<h1 class="text-center">Edit Complaint</h1>
+
+<hr/>
+
+<div class="row">
+    <div >
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label asp-for="MachineSerialNo" class="control-label"></label>
+                <input asp-for="MachineSerialNo" class="form-control" readonly />
+                <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CompanyName" class="control-label"></label>
+                <input asp-for="CompanyName" class="form-control" readonly/>
+                <span asp-validation-for="CompanyName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>  <!-- ✅ Error yaha show hoga -->
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PhoneNo" class="control-label"></label>
+                <input asp-for="PhoneNo" class="form-control" />
+                <span asp-validation-for="PhoneNo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Address" class="control-label"></label>
+                <input asp-for="Address" class="form-control" readonly />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ContactPerson" class="control-label"></label>
+                <input asp-for="ContactPerson" class="form-control" />
+                <span asp-validation-for="ContactPerson" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ComplaintDescription" class="control-label"></label>
+                <input asp-for="ComplaintDescription" class="form-control" />
+                <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
+            </div>
+
+            <!-- ✅ Image Upload Input -->
+            <div class="form-group mt-3">
+
+                
+               <input type="file" id="imageUpload" class="custom-file-input" accept="image/*"/>
+                 <input type="hidden" asp-for="ImageBase64" id="ImageBase64" />
+                  </div>
+
+            <!-- ✅ Existing Image Display -->
+            <div class="form-group  mt-3">
+              
+                @if (!string.IsNullOrEmpty(Model.ImageBase64?.ToString()))
+                {
+                    
+                    <img id="previewImage" src="data:image/png;base64,@(Model.ImageBase64?.ToString())"
+                         class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+
+                    <!-- ✅ Remove Image Button -->
+                    <button type="button" id="removeImage" onclick="removeUploadedImage()" style="display: inline-block; padding: 5px 10px;">❌</button>
+               
+                }
+                else
+                {
+                    <p>No image uploaded</p>
+                }
+
+            </div>
+
+            @{
+                var userRole = TempData["UserRole"]?.ToString() ?? "";
+            }
+
+            <div class="mb-3">
+                <label for="Role" class="form-label">AssignTo</label>
+                <input type="text" id="roleDisplay" name="Role" value="@userRole" class="form-control" onclick="showDropdown()" />
+                <select id="roleDropdown" class="form-control d-none" onchange="updateRole()">
+                    <option value="Sparepart" selected="@(userRole == "Sparepart" ? "selected" : null)">Sparepart</option>
+                    <option value="Service Engineer" selected="@(userRole == "Service Engineer" ? "selected" : null)">Service Engineer</option>
+                    <option value="Field Engineer" selected="@(userRole == "Field Engineer" ? "selected" : null)">Field Engineer</option>
+                </select>
+            </div>
+
+
+
+            <!-- ✅ Main Problems Section -->
+            <div class="form-group">
+                <label asp-for="SelectedMainProblems" class="control-label"></label>
+                <input asp-for="SelectedMainProblems" class="form-control" id="SelectedMainProblems" readonly oninput="adjustWidth(this)" style="width:420px;"  />
+                <input type="hidden" id="HiddenMainProblems" />
+                <div id="mainProblemCheckboxes">
+                    @foreach (var mainProblem in ViewBag.MainProblems)
+                    {
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input main-problem-checkbox" value="@mainProblem.Value" id="main_@mainProblem.Value">
+                            <label class="form-check-label" for="main_@mainProblem.Value">@mainProblem.Text</label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+
+
+            <!-- ✅ Sub Problems Section -->
+            <div class="form-group">
+                <label asp-for="SelectedSubProblems" class="control-label"></label>
+                <input asp-for="SelectedSubProblems" class="form-control" id="SelectedSubProblems" oninput="adjustWidth(this)" style="width:420px;" />
+                <input type="hidden" id="HiddenSubProblems" value="@selectedSubProblems" />
+                 <div id="subProblemCheckboxes"></div>
+            </div>
+
+            <div class="form-group text-center mt-5">
+                <input type="submit" value="Submit" class="btn btn-success mx-5"
+                       onclick="return confirm('Are you sure you want to submit?');" />
+
+                @{
+                    var role = Context.Session.GetString("Role") ?? "Unknown";
+                }
+
+                @if (role == "Coordinator") //  "coordinator" ka "C" capital ho sakta hai, check karo
+                {
+                   
+                        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary mx-5 ">Back to Coordinator Page</a>
+                }
+                   
+               </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+  
+          $(document).ready(function () {
+
+                                 $("#imageUpload").change(function () {
+                    var file = this.files[0];
+
+                     console.log("File selected:", file);
+
+                    $("#imageError").text("").hide();
+                    $("#previewImage").hide();
+                    $("#removeImage").hide();
+
+                    if (file) {
+                        var fileType = file.type;
+                        var fileSize = file.size;
+
+                   console.log("Original File Size:", fileSize, "bytes");
+
+     var allowedTypes = ["image/jpeg", "image/png"];
+                        if (!allowedTypes.includes(fileType)) {
+
+                             console.error("Invalid file type!");
+
+                            $("#imageError").text("Only JPG and PNG images are allowed.").show();
+                            return;
+                        }
+
+                        var maxSize = 2 * 1024 * 1024; // 2MB
+                        if (fileSize > maxSize) {
+                            $("#imageError").text("File size must be less than 2MB.").show();
+                            return;
+                        }
+
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            var img = new Image();
+                            img.src = e.target.result;
+
+                            img.onload = function () {
+                                var canvas = document.createElement("canvas");
+                                var ctx = canvas.getContext("2d");
+
+                                var maxWidth = 100; // ✅ Reduced width
+                                var maxHeight = 80; // ✅ Reduced height
+                                var width = img.width;
+                                var height = img.height;
+
+                              console.log("Original Image Size:", width, "x", height);
+
+
+
+                                if (width > height) {
+                                    if (width > maxWidth) {
+                                        height *= maxWidth / width;
+                                        width = maxWidth;
+                                    }
+                                } else {
+                                    if (height > maxHeight) {
+                                        width *= maxHeight / height;
+                                        height = maxHeight;
+                                    }
+                                }
+
+                              console.log("Resized Image Size:", width, "x", height);
+
+                                canvas.width = width;
+                                canvas.height = height;
+                                ctx.drawImage(img, 0, 0, width, height);
+
+                                // ✅ Convert to WebP for smaller Base64 size
+                                canvas.toBlob(function (blob) {
+                                    var compressedReader = new FileReader();
+                                    compressedReader.onloadend = function () {
+                                        var compressedBase64 = compressedReader.result.split(',')[1];
+
+                              console.log("Compressed Base64 Length:", compressedBase64.length);
+
+
+                                        $("#imageBase64").val(compressedBase64);
+                                        $("#previewImage").attr("src", compressedReader.result).show();
+                                        $("#removeImage").fadeIn();
+                                    };
+                                    compressedReader.readAsDataURL(blob);
+                                }, "image/webp", 0.4); // ✅ WebP with 50% compression
+                            };
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+
+                $("#removeImage").click(function () {
+
+                     console.log("Image removed!");
+
+                    $("#imageBase64").val("");
+                    $("#previewImage").attr("src", "").hide();
+                    $("#imageUpload").val("");
+                    $("#removeImage").hide();
+                });
+
+    let isLoaded = false;  // ✅ Flag to prevent duplicate calls
+
+         
+        let selectedMainProblemNames = $("#SelectedMainProblems").val().split(",").map(s => s.trim());
+
+        $(".main-problem-checkbox").each(function () {
+            let checkboxText = $(this).next("label").text().trim(); // Checkbox ke label ka text
+
+console.log("Main Problem Checkbox Text:", checkboxText);
+
+            if (selectedMainProblemNames.includes(checkboxText)) {
+                $(this).prop("checked", true);  // ✅ Checkbox ko tick karega
+
+console.log("✅ Main Problem Checked:", checkboxText);
+
+            }
+        });
+
+                 updateSelectedMainProblems();
+       
+        // ✅ Page load pe sub problems bhi load karega
+        let selectedMainProblemIds = $(".main-problem-checkbox:checked").map(function () {
+            return $(this).val();
+        }).get();
+
+
+
+         // ✅ Yahan pehle se `isLoaded` check karna zaroori hai
+
+            if (!isLoaded && selectedMainProblemIds.length > 0) {
+            isLoaded = true;  // ✅ Flag set karo
+            loadSubProblems(selectedMainProblemIds);
+        }
+
+console.log("🔍 Before API Call - HiddenSubProblems:", $("#HiddenSubProblems").val());
+
+
+            function loadSubProblems(selectedMainProblems) {
+                if (selectedMainProblems.length === 0) {
+                    $("#subProblemCheckboxes").html("");
+                    $("#SelectedSubProblems").val("");
+                    $("#HiddenSubProblems").val("");
+
+                    return;
+                }
+console.log("🔄 ye page kitne bar load horaha hai ye batane k liye us hoga console  loadSubProblems Called, Selected IDs:", selectedMainProblems);
+
+                         let previouslySelected = $(".sub-problem-checkbox:checked").map(function () {
+                       return $(this).val();
+                       }).get();
+
+console.log("💾 Preserved Selected Sub-Problems:", previouslySelected);
+
+ 
+                $.ajax({
+                    url: '@Url.Action("GetSubProblems", "ComplaintRegistrations")',
+                    type: 'GET',
+                    data: { mainProblemIds: selectedMainProblems },
+                    traditional: true,  // ✅ Ensures list is passed properly
+                    success: function (response) {
+
+                         //  BACKEND RESPONSE BACKEND ME PRINT KARO 
+console.log(" AFTER API Response:", response);
+
+            console.log("After API Call - HiddenSubProblems:", HiddenSubProblems);
+
+                               
+                         $("#subProblemCheckboxes").html("");
+
+ 
+                        response.forEach(group => {
+                            let mainProblemName = group.mainProblem;
+                            let subProblems = group.subProblems;
+
+                            $("#subProblemCheckboxes").append(`<strong>${mainProblemName}</strong><br>`);
+
+                            subProblems.forEach(sp => {
+                            let isChecked = previouslySelected.includes(sp.value) ? "checked" : ""; // ✅ Preserve checked state
+
+                           let checkbox = `<div class="form-check">
+                                    <input type="checkbox" class="form-check-input sub-problem-checkbox" value="${sp.value}" id="sub_${sp.value}" ${isChecked}>
+                                    <label class="form-check-label" for="sub_${sp.value}">${sp.text}</label>
+                                </div>`;
+                                $("#subProblemCheckboxes").append(checkbox);
+                            });
+                        });
+console.log("🔍 Generated Checkboxes:", $("#subProblemCheckboxes").html());
+
+
+                        // ✅ Previously selected sub problems ko check karega
+                        // let selectedSubProblems = $("#SelectedSubProblems").val().split(",");
+
+                     let selectedSubProblems = $("#HiddenSubProblems").val().split(",").map(s => s.trim());
+
+console.log("🔍 HiddenSubProblems Value 098765432:", $("#HiddenSubProblems").val());
+console.log("🔍 Selected SubProblems After Split:", selectedSubProblems);
+
+        //                  let checkboxValue = $(this).val().trim(); ✅ ID from checkbox
+        //                      console.log("Checkbox Value:", checkboxValue.trim().toLowerCase());
+        // console.log("HiddenSubProblems Array:", selectedSubProblems.map(sub => sub.trim().toLowerCase()));
+        // console.log("Match Found:", selectedSubProblems.some(sub => sub.trim().toLowerCase() === checkboxValue.trim().toLowerCase()));
+
+       $(".sub-problem-checkbox").each(function () {
+                    let checkboxText = $(this).next("label").text().trim().replace(/_/g, " "); // Get label text of the checkbox
+
+console.log("🔍 Checking Checkbox Text:", checkboxText);
+
+            let matchedSubproblem = selectedSubProblems.find(sub => sub.replace(/_/g, " ").trim().toLowerCase() === checkboxText.toLowerCase());
+
+
+                    if (matchedSubproblem) {
+                $(this).prop("checked", true);
+                console.log("✔ Checked:", checkboxText);
+            }
+        });
+                       // ✅ Selected sub-problems ko update karo
+                    updateSelectedSubProblems();
+                }
+            });
+        }
+
+              $(".main-problem-checkbox").change(function () {
+
+            let selectedNames = $(".main-problem-checkbox:checked").map(function () {
+                return $(this).next("label").text(); // ✅ Main problem ka naam extract karega
+            }).get();
+
+             updateSelectedMainProblems();  // ✅ Call function to resize textbox dynamically
+
+console.log("✅ Main Problem Changed, isLoaded Resetting...");
+                isLoaded = false;  // ✅ Reset flag on change
+
+            let selectedIds = $(".main-problem-checkbox:checked").map(function () {
+                return $(this).val(); // ✅ IDs extract karega
+            }).get();
+
+            $("#SelectedMainProblems").val(selectedNames.join(","));  // ✅ Textbox me naam store karega
+            $("#HiddenMainProblems").val(selectedIds.join(","));  // ✅ Hidden field me IDs store karega
+             
+               if (!isLoaded) {  // ✅ Ensure multiple calls avoid hoon
+            isLoaded = true;
+            loadSubProblems(selectedIds);
+        }
+        });
+
+                    $(document).on("change", "#subProblemCheckboxes .sub-problem-checkbox", function () {
+console.log("🟢 Sub-Problem Checkbox Changed:", $(this).next("label").text());
+            updateSelectedSubProblems();
+        });
+
+        let subProblemInput = document.getElementById("SelectedSubProblems");
+
+        // ✅ Ensure Textbox Adjusts on Load
+        if (subProblemInput) {
+            adjustWidth(subProblemInput);
+        }
+
+        // ✅ Jab user kuch type kare ya delete kare, toh width adjust karega
+        $("#SelectedSubProblems").on("input", function () {
+            adjustWidth(this);
+        });
+
+        // ✅ Checkbox selection ke baad bhi width adjust karega
+        $(document).on("change", ".sub-problem-checkbox", function () {
+            updateSelectedSubProblems();
+        });
+
+        function adjustWidth(input) {
+            if (input) {
+                let minWidth = 420; // Minimum width
+                let newWidth = (input.value.length + 2) * 14; // Character width * 8px
+                input.style.width = Math.max(newWidth, minWidth) + "px"; // Ensure minimum width
+            }
+        }
+
+
+                function updateSelectedMainProblems() {
+console.log("🟢 updateSelectedMainProblems() called!");
+
+            let selectedTexts = $(".main-problem-checkbox:checked").map(function () {
+                return $(this).next("label").text();
+            }).get();
+
+            let finalText = selectedTexts.length > 0 ? selectedTexts.join(", ")   :  " ";
+
+            $("#SelectedMainProblems").val(finalText);
+            $("#HiddenMainProblems").val($(".main-problem-checkbox:checked").map(function () { return $(this).val(); }).get().join(","));
+
+            let inputField = document.getElementById("SelectedMainProblems");
+            if (inputField) {
+                adjustWidth(inputField);
+            }
+console.log("🔵 HiddenMainProblems Updated:", $("#HiddenMainProblems").val());
+        }
+
+                 function updateSelectedSubProblems() {
+
+console.log("🟢 updateSelectedSubProblems() called!");  // ✅ Check if function runs
+
+                let selectedTexts = $(".sub-problem-checkbox:checked").map(function () {
+                    return $(this).next("label").text();
+                }).get();
+
+console.log("🟡 Selected SubProblem Texts:", selectedTexts);  // ✅ Debug Selected Texts
+
+         let finalText = selectedTexts.length > 0 ? selectedTexts.join(",  ") : "";
+
+                $("#SelectedSubProblems").val(finalText);
+
+                let selectedValues = $(".sub-problem-checkbox:checked").map(function () {
+                    return $(this).val();
+                }).get();
+                $("#HiddenSubProblems").val(selectedValues.join(","));
+
+        // ✅ Immediately adjust width dynamically
+         let inputField = document.getElementById("SelectedSubProblems");
+         if (inputField) {
+             adjustWidth(inputField);
+         }
+
+console.log("🔵 HiddenSubProblems Updated:", $("#HiddenSubProblems").val()); // ✅ Check Updated Value
+
+            }
+
+                    // ✅ Function to dynamically resize textbox YAHA  YE SUBPROBLEM KI LENGTH BADHATA HAI 
+        function adjustWidth(input) {
+            let newWidth = input.value.length + 5; // ✅ Increase width based on text length
+            input.style.width = newWidth + "ch"; // ✅ "ch" makes it adjust to character size
+        }
+
+        });
+
+                          function showDropdown() {
+            document.getElementById("roleDisplay").classList.add("d-none");
+            document.getElementById("roleDropdown").classList.remove("d-none");
+        }
+
+        function updateRole() {
+            var selectedRole = document.getElementById("roleDropdown").value;
+            document.getElementById("roleDisplay").value = selectedRole;
+            document.getElementById("roleDisplay").classList.remove("d-none");
+            document.getElementById("roleDropdown").classList.add("d-none");
+        }
+
+
+                        function removeUploadedImage() {
+         let previewImage = document.getElementById("previewImage");
+            previewImage.src = "";
+            previewImage.style.display = "none"; // ✅ Image ko completely hide karega 
+            
+            document.getElementById("ImageBase64").value = "";
+
+         // ✅ Reset file input properly
+            let imageInput = document.getElementById("imageUpload");
+            imageInput.value = "";
+            imageInput.type = "text";  // ✅ Force reset
+            imageInput.type = "file";  // ✅ Re-enable file input
+
+
+        let removeBtn = document.getElementById("removeImage");
+            if (removeBtn) {
+                removeBtn.style.display = "none";
+            }
+         }
+      
+    </script>
+
+}
+

@@ -1,0 +1,40 @@
+﻿@model ServiceModel
+
+<h2>Field Engineer - Complaint Details</h2>
+
+<table>
+    <tr><th>Token:</th><td>@Model.TokenNumber</td></tr>
+    <tr><th>Machine:</th><td>@Model.MachineSerialNo</td></tr>
+    <tr><th>Company:</th><td>@Model.CompanyName</td></tr>
+    <tr><th>Email:</th><td>@Model.Email</td></tr>
+    <tr><th>Phone:</th><td>@Model.PhoneNo</td></tr>
+    <tr><th>Address:</th><td>@Model.Address</td></tr>
+    <tr><th>Contact Person:</th><td>@Model.ContactPerson</td></tr>
+    <tr><th>Description:</th><td>@Model.ComplaintDescription</td></tr>
+    <tr><th>Status:</th><td>@Model.Status</td></tr>
+    <tr>
+        <th>Image:</th>
+        <td>
+            @if (!string.IsNullOrEmpty(Model.ImageBase64))
+            {
+                <img src="data:image/png;base64,@Model.ImageBase64" alt="Complaint Image" width="200" />
+            }
+            else
+            {
+                <span>No Image Available</span>
+            }
+        </td>
+    </tr>
+</table>
+
+<h3>Field Engineer Remark</h3>
+<form asp-action="SaveFieldEngineerRemark" method="post">
+    <input type="hidden" asp-for="ComplaintId" />
+    <textarea asp-for="Remark" required></textarea>
+    <button type="submit">Save Remark</button>
+</form>
+
+@if (TempData["Success"] != null)
+{
+    <p style="color: green;">@TempData["Success"]</p>
+}

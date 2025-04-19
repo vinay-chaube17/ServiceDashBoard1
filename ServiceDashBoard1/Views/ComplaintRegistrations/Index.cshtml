@@ -1,0 +1,127 @@
+﻿@using ServiceDashBoard1.Enums
+@using ServiceDashBoard1.Models
+
+@model IEnumerable<ServiceDashBoard1.Models.ComplaintRegistration>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="text-center">
+    <h1>ADMIN </h1>
+    
+
+    <!-- ✅ Search Bar with Button -->
+    <input type="text" id="searchInput" class="form-control w-50 mx-auto my-3" placeholder="Search by Machine Serial No or ContactPerson" oninput="searchTable()" />
+    <button class="btn btn-primary mx-5" onclick="searchTable()">Search</button>
+    <a asp-action="Create" class="btn btn-success mx-5">New Complaint</a>
+      <a href="@Url.Action("Register", "Users")" class="btn btn-success mx-5"> New Register Here</a>
+</div>
+  
+    
+
+
+<!-- ✅ Centered Table -->
+<div class="d-flex justify-content-center mt-4">
+    <table class="table table-bordered table-striped text-center mx-5" id="complaintsTable">
+        <thead>
+            <tr>
+                <th>Machine Serial No</th>
+                <th>Company Name</th>
+                 <th>ContactPerson</th>
+                <th>Token Number</th>
+                <th>Status</th>
+                @* <th>Checked By</th> <!-- ✅ Added Checked By Column --> *@
+              
+                <th id="actionHeader" style="display: none;">Action</th> <!-- ✅ Initially Hidden Action Column -->
+              
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+
+                var isHidden = (item.Status == "Cancelled" || item.Status == "Completed") ? "d-none hide-on-load" : "";
+
+                <tr class="searchable-row @isHidden"
+                    data-id="@item.Id"
+                    data-checked-by="@item.CheckedBy"
+                    data-status="@item.Status.ToLower()"
+                    data-contactperson="@item.ContactPerson?.ToLower()">
+
+
+
+                    <td>@item.MachineSerialNo</td>
+                    <td>@item.CompanyName</td>
+                     <td>@item.ContactPerson</td>  <!-- ✅ Added Email Column -->
+                    <td>
+                        <a asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none">
+                            @item.TokenNumber
+                        </a>
+                    </td>
+                    <td>@item.Status</td>
+                    @* <td>@item.CheckedBy</td>  <!-- ✅ This will now show the correct user --> *@
+
+
+                    <td class="actionColumn" style="display: none;">
+                        @if (item.Status == "New" || item.Status == "Viewed")
+                        {
+                            <a href="/ComplaintRegistrations/Edit/@item.Id" class="btn btn-primary">Edit</a>
+                        }
+                        else
+                        {
+                            <span>Not Editable</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+    
+</div>
+
+<script>
+    function searchTable() {
+         let input = document.getElementById("searchInput").value.toLowerCase();
+         let rows = document.querySelectorAll(".searchable-row");
+         let found = false;
+
+         rows.forEach(row => {
+             let serialNo = row.cells[0].textContent.toLowerCase();
+           let status = row.dataset.status; 
+            let contactperson = (row.dataset.contactperson || "").toLowerCase();
+           
+             
+
+             if (serialNo.includes(input)  || contactperson.includes(input)) {
+                 row.style.display = "";
+                 row.classList.remove("d-none");  
+
+                 found = true;
+             } else {
+                 row.style.display = "none";
+             }
+         });
+         
+         
+         document.getElementById("actionHeader").style.display = found ? "" : "none";
+         document.querySelectorAll(".actionColumn").forEach(col => col.style.display = found ? "" : "none");
+     }
+
+     document.getElementById("searchInput").addEventListener("input", function () {
+         if (this.value.trim() === "") {
+
+
+             document.querySelectorAll(".searchable-row").forEach(row => {
+            let status = row.dataset.status;
+            row.style.display = (status === "cancelled" || status === "completed") ? "none" : "";
+        });
+
+
+
+             document.getElementById("actionHeader").style.display = "none";
+             document.querySelectorAll(".actionColumn").forEach(col => col.style.display = "none");
+         }
+     });
+</script>
