@@ -1,0 +1,724 @@
+﻿@model ServiceDashBoard1.Models.ComplaintRegistration
+
+@{
+    var selectedSubProblems = ViewBag.SelectedSubProblems ?? "";  // Null hone pe empty string set kar raha hai
+}
+
+@{
+    var userRole = Context.Session.GetString("Role");
+}
+
+<div class="mb-3" style="margin-left: 0;">
+    <a asp-controller="ComplaintRegistrations" asp-action="FieldEngineerDashBoard" class="btn btn-primary">Back to Field Operation Manager DashBoard</a>
+</div>
+
+@if (userRole == "Field Operations Manager")
+{
+    <div style="text-align: center;">
+        <h1 class="text-center my-4">
+            <i class="bi bi-clipboard-data me-2 text-primary" style="font-size: 2rem;"></i>
+            Field-Service Allocation Board
+        </h1>
+    </div>
+
+    <!-- ✅ Yahan sirf Field Engineer ke liye dikhane wali cheezen likho -->
+}
+
+
+
+<div class="row">
+
+    <div>
+        <form asp-action="FieldEngineer" method="post">
+            <input type="hidden" id="ComplaintId" name="ComplaintId" value="@Model.Id" />
+
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label asp-for="MachineSerialNo" class="control-label"></label>
+                <input asp-for="MachineSerialNo" class="form-control" readonly />
+                <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CompanyName" class="control-label"></label>
+                <input asp-for="CompanyName" class="form-control" readonly />
+                <span asp-validation-for="CompanyName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" readonly/>
+                <span asp-validation-for="Email" class="text-danger"></span>  <!-- ✅ Error yaha show hoga -->
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PhoneNo" class="control-label"></label>
+                <input asp-for="PhoneNo" class="form-control" readonly />
+                <span asp-validation-for="PhoneNo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Address" class="control-label"></label>
+                <input asp-for="Address" class="form-control" readonly />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ContactPerson" class="control-label"></label>
+                <input asp-for="ContactPerson" class="form-control" readonly/>
+                <span asp-validation-for="ContactPerson" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ComplaintDescription" class="control-label"></label>
+                <input asp-for="ComplaintDescription" class="form-control" readonly/>
+                <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
+            </div>
+
+
+            <!-- ✅ Existing Image Display -->
+            <div class="form-group  mt-3">
+
+                @if (!string.IsNullOrEmpty(Model.ImageBase64?.ToString()))
+                {
+
+                    <img id="previewImage" src="data:image/png;base64,@(Model.ImageBase64?.ToString())"
+                    class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+
+                }
+                else
+                {
+                    <p>No image uploaded</p>
+                }
+
+            </div>
+
+
+            @{
+                var userRole = TempData["UserRole"]?.ToString() ?? "";
+
+            }
+
+
+
+
+
+
+
+            <!-- ✅ Main Problems Section -->
+            <div class="form-group">
+                <label asp-for="SelectedMainProblems" class="control-label"></label>
+                <input asp-for="SelectedMainProblems" class="form-control" id="SelectedMainProblems" readonly oninput="adjustWidth(this)" style="width:420px;" />
+                <input type="hidden" id="HiddenMainProblems" />
+
+            </div>
+
+
+
+            <!-- ✅ Sub Problems Section -->
+            <div class="form-group">
+                <label asp-for="SelectedSubProblems" class="control-label"></label>
+                <input asp-for="SelectedSubProblems" class="form-control" id="SelectedSubProblems" oninput="adjustWidth(this)" style="width:420px;" readonly />
+                <input type="hidden" id="HiddenSubProblems" value="@selectedSubProblems"  />
+                <div id="subProblemCheckboxes"></div>
+            </div>
+
+
+            <div class="mb-3 col-md-4">
+                <label for="Role" class="form-label">AssignTo</label>
+                <input type="text" id="roleDisplay" name="Role" value="@userRole" class="form-control"  readonly/>
+
+            </div>
+
+
+
+            <div class="my-3">
+                <button type="button" class="btn btn-success" id="addEmployeeBtn" onclick="showNextEmployeeSet()">+ Select Engineer</button>
+            </div>
+
+           
+
+           @*  <div class="mb-3" id="fieldEngineerNoteDiv">
+                @if (ViewBag.EmployeeAssignments != null && ViewBag.EmployeeAssignments.Count > 0)
+                {
+                    @for (int i = 0; i < ViewBag.EmployeeAssignments.Count; i++)
+                    {
+                        var employee = ViewBag.EmployeeAssignments[i];
+                        <div class="row employee-set mt-3 existing-employee">
+                            <div class="col-md-2">
+                                <label class="form-label">Employee ID</label>
+                                <input type="text" class="form-control form-control-sm employee-id" name="EmployeeId1[@i]" value="@employee.EmployeeIdNo" maxlength="6" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Employee Name</label>
+                                <input type="text" class="form-control form-control-sm employee-name" name="EmployeeName1[@i]" value="@employee.EmployeeNames" readonly />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary" id="smsbutton" disabled>Send SMS</button>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Hidden Employee Sets for Adding Dynamically -->
+                @for (int j = 0; j < 3; j++)
+                {
+                    <div class="row employee-set mt-3 new-employee" id="employee-set-@j" style="display: none;">
+                        <div class="col-md-2">
+                            <label class="form-label">Employee ID</label>
+                            <input type="text" class="form-control form-control-sm employee-id" name="EmployeeId1[@j]" maxlength="6" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Employee Name</label>
+                            <input type="text" class="form-control form-control-sm employee-name" name="EmployeeName1[@j]" readonly />
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary" onclick="sendSMS(this)">Send SMS</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+
+ *@
+
+
+
+
+
+
+
+
+             <div class="mb-3" id="fieldEngineerNoteDiv">
+                @if (ViewBag.EmployeeAssignments != null && ViewBag.EmployeeAssignments.Count > 0)
+                {
+                    @for (int i = 0; i < ViewBag.EmployeeAssignments.Count; i++)
+                    {
+                        
+
+                        var employee = ViewBag.EmployeeAssignments[i];
+                        <div class="row employee-set mt-3 existing-employee">
+                            <div class="col-12 col-md-2">
+                                <label class="form-label">Employee ID</label>
+                                <input type="text" class="form-control form-control-sm employee-id"
+                                       name="EmployeeId1[@i]" value="@employee.EmployeeIdNo" maxlength="4" readonly />
+                                <input type="hidden" name="EmployeeId1[]" value="@employee.EmployeeIdNo" />
+
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">Employee Name</label>
+                                <input type="text" class="form-control form-control-sm employee-name"
+                                       name="EmployeeName1[@i]" value="@employee.EmployeeNames" readonly />
+                                <input type="hidden" name="EmployeeName1[]" value="@employee.EmployeeNames" />
+
+
+                            </div>
+                            <div class="col-12 col-md-2 text-md-end mt-2 mt-md-0">
+                                <button type="button" class="btn btn-primary" id="smsbutton" disabled>Send SMS</button>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Hidden Employee Sets for Adding Dynamically -->
+                @for (int j = 1; j <= 3; j++)
+                {
+
+  
+
+                    <div class="row employee-set mt-3 new-employee" id="employee-set-@j" style="display: none;">
+                        <div class="col-md-2">
+                            <label class="form-label">Employee ID</label>
+                            <input type="text" class="form-control form-control-sm employee-id"
+                                   name="EmployeeId1[]"
+                                   maxlength="6" />
+                            <input type="hidden" name="EmployeeId[@j]" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Employee Name</label>
+                            <input type="text" class="form-control form-control-sm employee-name" name="EmployeeName1[]"
+                                    readonly />
+                            <input type="hidden" name="EmployeeName1[@j]" />
+
+                        </div>
+                        <div class="col-12 col-md-2 text-md-end mt-2 mt-md-0">
+                            <button type="button" class="btn btn-primary" onclick="sendSMS(this)">Send SMS</button>
+                        </div>
+                    </div>
+                }
+            </div> 
+
+            
+
+
+
+            <div class="form-group text-center mt-5">
+                <input type="submit" value="Submit" class="btn btn-success mx-5"
+                     id="subbtn"  onclick="if(confirm('Are you sure you want to submit?')) { resetLockAndShowNextSet(); return true; } else { return false; }" />
+                         
+                @{
+                    var role = Context.Session.GetString("Role") ?? "Unknown";
+                }
+
+                @if (role == "Coordinator")
+                {
+
+                    <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary mx-5 ">Back to Coordinator Page</a>
+                }
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+@* <script> *@
+@*     // ✅ Global Variables *@
+@*     const maxEmployeeSets = 4; *@
+@*     let lockNextSet = false; *@
+@*     let smsSent = false; *@
+@*     let currentSet = 1;  // Start with the first set *@
+
+@*     // ✅ Initialize Employee Sets on Page Load *@
+@*     document.addEventListener("DOMContentLoaded", () => { *@
+@*         const employeeSets = document.querySelectorAll(".employee-set"); *@
+
+@*         // ✅ Ensure first set is always visible *@
+@*         if (employeeSets.length > 0) { *@
+@*             employeeSets[0].style.display = "flex"; *@
+@*         } *@
+
+@*         // ✅ Hide remaining sets initially *@
+@*         for (let i = 1; i < employeeSets.length; i++) { *@
+@*             employeeSets[i].style.display = "none"; *@
+@*         } *@
+
+@*         // ✅ Attach listeners to each set *@
+@*         employeeSets.forEach((set, index) => { *@
+@*             const empIdField = set.querySelector(".employee-id"); *@
+@*             const empNameField = set.querySelector(".employee-name"); *@
+@*             const smsButton = set.querySelector(".btn-primary"); *@
+
+           
+
+
+
+@*             if (empIdField && empNameField && smsButton) { *@
+@*                 // ✅ Lock if already filled *@
+@*                 if (empIdField.value.trim() !== "" && empNameField.value.trim() !== "" && empNameField.value !== "User not found") { *@
+@*                     smsButton.disabled = true; *@
+@*                     empIdField.readOnly = true; *@
+@*                     lockNextSet = false;  // Unlock for next set *@
+@*                 } *@
+
+@*                 // ✅ Attach dynamic fetching for employee names *@
+@*                 empIdField.addEventListener("input", () => { *@
+@*                     fetchEmployeeName(empIdField, empNameField, smsButton); *@
+@*                 }); *@
+
+@*                 // ✅ SMS Button Click Event *@
+@*                 smsButton.addEventListener("click", () => { *@
+@*                     sendSMS(smsButton, index); *@
+@*                 }); *@
+@*             } *@
+@*         }); *@
+@*     }); *@
+
+@*     // ✅ Show the next employee set *@
+@*     function showNextEmployeeSet() { *@
+@*         if (lockNextSet) return;  // Prevent multiple sets before SMS is sent *@
+
+@*         const nextSet = document.getElementById(`employee-set-${currentSet}`); *@
+@*         if (nextSet) { *@
+@*             nextSet.style.display = "flex"; *@
+@*             currentSet++; *@
+@*             lockNextSet = true;  // Lock until SMS is sent *@
+
+@*             // ✅ Disable "Add Employee" Button if max sets reached *@
+@*             if (currentSet >= maxEmployeeSets) { *@
+@*                 document.getElementById("addEmployeeBtn").disabled = true; *@
+@*             } *@
+@*         } *@
+@*     } *@
+
+@*     // ✅ Fetch Employee Name Based on ID *@
+@*     async function fetchEmployeeName(empIdField, empNameField, smsButton) { *@
+@*         const userId = empIdField.value.trim(); *@
+
+@*         // ✅ Basic Validation *@
+@*         if (userId === "" || isNaN(userId)) { *@
+@*             empNameField.value = ""; *@
+@*             smsButton.disabled = true; *@
+@*             return; *@
+@*         } *@
+
+@*         try { *@
+@*             const response = await fetch(`/User/GetUserNameById?id=${userId}`); *@
+@*             const data = await response.json(); *@
+
+@*             if (data && data.name) { *@
+@*                 empNameField.value = data.name; *@
+@*                 smsButton.disabled = false; *@
+@*             } else { *@
+@*                 empNameField.value = "User not found"; *@
+@*                 smsButton.disabled = true; *@
+@*             } *@
+@*         } catch (error) { *@
+@*             console.error("Error fetching employee name:", error); *@
+@*             empNameField.value = "Error"; *@
+@*             smsButton.disabled = true; *@
+@*         } *@
+@*     } *@
+
+@*     // ✅ Send SMS Button Logic *@
+@*     function sendSMS(button, index) { *@
+@*         const parentDiv = button.closest(".employee-set"); *@
+@*         const empIdField = parentDiv.querySelector(".employee-id"); *@
+@*         const empNameField = parentDiv.querySelector(".employee-name"); *@
+@*         const Id = empIdField.value.trim(); *@
+@*         const employeeName = empNameField.value.trim(); *@
+
+@*         if (Id && employeeName && employeeName !== "User not found") { *@
+@*             fetch(`/Users/SendSMS?id=${Id}`) *@
+@*                 .then(response => response.json()) *@
+@*                 .then(data => { *@
+@*                     if (data.success) { *@
+@*                         alert(`SMS sent successfully to ${employeeName}`); *@
+@*                         button.disabled = true; *@
+@*                         empIdField.readOnly = true; *@
+@*                         lockNextSet = false;  // ✅ Unlock for the next set *@
+@*                         smsSent = true;  // ✅ SMS sent successfully *@
+@*                         showNextEmployeeSet();  // ✅ Show next set after SMS sent *@
+@*                     } else { *@
+@*                         alert("Failed to send SMS."); *@
+@*                     } *@
+@*                 }) *@
+@*                 .catch(error => { *@
+@*                     console.error("Error sending SMS:", error); *@
+@*                     alert("Error sending SMS."); *@
+@*                 }); *@
+@*         } else { *@
+@*             alert("Please enter a valid Employee ID and ensure Name is correctly populated."); *@
+@*         } *@
+@*     } *@
+@* </script> *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <script>
+    // ✅ Global Variables
+    const maxEmployeeSets = 4;
+    let lockNextSet = false;  // ✅ Lock to prevent multiple selections
+        let smsSent = false;  // ✅ Track if SMS is sent
+
+
+    // ✅ Initialize Employee Sets on Page Load
+    document.addEventListener("DOMContentLoaded", () => {
+        const employeeSets = document.querySelectorAll(".employee-set");
+        currentSet = employeeSets.length - 2;
+
+       
+
+        employeeSets.forEach(set => {
+            const empIdField = set.querySelector(".employee-id");
+            const empNameField = set.querySelector(".employee-name");
+            const smsButton = set.querySelector(".btn-primary");
+
+            // ✅ Set read-only if pre-filled
+            if (empIdField && empNameField && smsButton) {
+                if (empIdField.value.trim() !== "" && empNameField.value.trim() !== "" && empNameField.value !== "User not found") {
+                    smsButton.disabled = true;
+                    empIdField.readOnly = true;
+                    lockNextSet = false; 
+                }
+
+                // ✅ Attach dynamic fetching for employee names
+                empIdField.addEventListener("input", () => {
+                    fetchEmployeeName(empIdField, empNameField, smsButton);
+                });
+            }
+        });
+
+
+
+        // ✅ Initially disable the submit button if no employees are selected
+        updateSubmitButtonState();
+    });
+
+        function resetLockAndShowNextSet() {
+        lockNextSet =false;  // ✅ Unlock the next set
+                updateSubmitButtonState();  // ✅ Re-enable the submit button
+
+       
+    }
+
+    // ✅ Show the next employee set
+    function showNextEmployeeSet() {
+
+
+           
+
+        if (lockNextSet) return; // ✅ Prevent multiple sets before SMS is sent
+
+
+        const nextSet = document.getElementById(`employee-set-${currentSet}`);
+
+        if (nextSet) {
+                            
+
+            nextSet.style.display = 'flex';
+            currentSet++;
+                
+            lockNextSet = true;  // ✅ Lock until SMS is sent
+                        updateSubmitButtonState();  // ✅ Disable submit button
+
+
+
+            if (currentSet >= maxEmployeeSets) {
+                    
+                document.getElementById("addEmployeeBtn").disabled = true;
+            }
+        }
+    }
+
+    // ✅ Fetch Employee Name Based on ID
+    async function fetchEmployeeName(empIdField, empNameField, smsButton) {
+        const userId = empIdField.value.trim();
+
+        // ✅ Basic Validation
+        if (userId === "" || isNaN(userId)) {
+            empNameField.value = "";
+            smsButton.disabled = true;
+                        updateSubmitButtonState();  // ✅ Disable submit button if empty
+
+            return;
+        }
+
+        try {
+            const response = await fetch(`/User/GetUserNameById?id=${userId}`);
+            const data = await response.json();
+
+            if (data && data.name) {
+                empNameField.value = data.name;
+                smsButton.disabled = false;
+            } else {
+                empNameField.value = "User not found";
+                smsButton.disabled = true;
+            }
+        } catch (error) {
+            console.error("Error fetching employee name:", error);
+            empNameField.value = "Error";
+            smsButton.disabled = true;
+                      updateSubmitButtonState();  // ✅ Disable submit button on error
+
+
+        }
+    }
+
+    // ✅ Send SMS Button Logic
+    function sendSMS(button) {
+        const parentDiv = button.closest(".employee-set");
+        const empIdField = parentDiv.querySelector(".employee-id");
+        const empNameField = parentDiv.querySelector(".employee-name");
+        const Id = empIdField.value.trim();
+        const employeeName = empNameField.value.trim();
+                const complaintId = document.getElementById("ComplaintId").value;
+
+
+        if (Id && employeeName && employeeName !== "User not found") {
+            fetch(`/Users/SendSMS?id=${Id}&complaintId=${complaintId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`SMS sent successfully to ${employeeName}`);
+                        button.disabled = true;
+                        empIdField.readOnly = true;
+                        lockNextSet = false;  // ✅ Unlock for the next set
+                            smsSent = true;  // ✅ SMS sent successfully
+                         updateSubmitButtonState();  // ✅ Re-enable submit button
+
+
+                    } else {
+                        alert("Failed to send SMS.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error sending SMS:", error);
+                    alert("Error sending SMS.");
+                });
+        } else {
+            alert("Please enter a valid Employee ID and ensure Name is correctly populated.");
+        }
+    }
+
+     // ✅ Update Submit Button State
+    function updateSubmitButtonState() {
+        const submitButton = document.getElementById("subbtn");
+        submitButton.disabled = lockNextSet || !smsSent;
+    }
+   
+</script>
+ 
+
+
+
+@* <script> 
+    // ✅ Global Variables
+  
+     
+    const maxEmployeeSets = 4; 
+
+    // ✅ Initialize Employee Sets on Page Load
+    document.addEventListener("DOMContentLoaded", () => {
+        const employeeSets = document.querySelectorAll(".employee-set");
+
+            currentSet = employeeSets.length - 2;
+
+
+        employeeSets.forEach(set => {
+            const empIdField = set.querySelector(".employee-id");
+            const empNameField = set.querySelector(".employee-name");
+            const smsButton = set.querySelector(".btn-primary");
+
+            // ✅ Set read-only if pre-filled
+            if (empIdField && empNameField && smsButton) {
+                if (empIdField.value.trim() !== "" && empNameField.value.trim() !== "" && empNameField.value !== "User not found") {
+                    smsButton.disabled = true;
+                    empIdField.readOnly = true;
+                }
+
+                // ✅ Attach dynamic fetching for employee names
+                empIdField.addEventListener("input", () => {
+                    fetchEmployeeName(empIdField, empNameField, smsButton);
+                });
+            }
+        });
+    });
+
+    // ✅ Show the next employee set
+
+    function showNextEmployeeSet() {
+
+        console.log(" Current set1 :  " + currentSet);
+
+        console.log(" Current maxemployee :  " + maxEmployeeSets);
+
+
+        const nextSet = document.getElementById(`employee-set-${currentSet}`);
+
+           console.log(" Current set 2 :  " + currentSet);
+
+        if (nextSet) {
+
+            console.log(" Current set 4 :  " + currentSet);
+
+
+            nextSet.style.display = 'flex';
+
+           console.log(" Current set 5 :  " + currentSet);
+
+            currentSet++;
+
+               console.log(" Current set 3} :  " + currentSet);
+
+                     console.log(" maxEmployeeSets 6} :  " + maxEmployeeSets);
+
+            // ✅ Disable button if last set is revealed
+
+            if (currentSet >= maxEmployeeSets) {
+
+                   console.log(" Current set 3 :  " + currentSet);
+
+                console.log("hello this is ravan");
+
+                document.getElementById("addEmployeeBtn").disabled = true;
+            }
+        }
+    }
+
+    // ✅ Fetch Employee Name Based on ID
+    async function fetchEmployeeName(empIdField, empNameField, smsButton) {
+        const userId = empIdField.value.trim();
+
+        // ✅ Basic Validation
+        if (userId === "" || isNaN(userId)) {
+            empNameField.value = "";
+            smsButton.disabled = true;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/User/GetUserNameById?id=${userId}`);
+            const data = await response.json();
+
+            if (data && data.name) {
+                empNameField.value = data.name;
+                smsButton.disabled = false;
+            } else {
+                empNameField.value = "User not found";
+                smsButton.disabled = true;
+            }
+        } catch (error) {
+            console.error("Error fetching employee name:", error);
+            empNameField.value = "Error";
+            smsButton.disabled = true;
+        }
+    }
+
+    // ✅ Send SMS Button Logic
+    function sendSMS(button) {
+        const parentDiv = button.closest(".employee-set");
+        const empIdField = parentDiv.querySelector(".employee-id");
+        const empNameField = parentDiv.querySelector(".employee-name");
+        const Id = empIdField.value.trim();
+        const employeeName = empNameField.value.trim();
+
+        if (Id && employeeName && employeeName !== "User not found") {
+            fetch(`/Users/SendSMS?id=${Id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`SMS sent successfully to ${employeeName}`);
+                        button.disabled = true;
+                        empIdField.readOnly = true;
+                    } else {
+                        alert("Failed to send SMS.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error sending SMS:", error);
+                    alert("Error sending SMS.");
+                });
+        } else {
+            alert("Please enter a valid Employee ID and ensure Name is correctly populated.");
+        }
+    }
+</script> *@
+
+
+
+
+
+
+
+

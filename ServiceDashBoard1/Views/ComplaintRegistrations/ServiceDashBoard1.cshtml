@@ -1,136 +1,209 @@
 ﻿@model IEnumerable<ServiceDashBoard1.Models.ComplaintRegistration>
 
-@{
-    ViewData["Title"] = "Service DashBoard";
-    var userRole = Context.Session.GetString("Role"); // Current logged-in user ka role
 
-    // ✅ Set dashboard title based on user role
+@{
+
+    ViewData["Title"] = "Service DashBoard";
+    var userRole = Context.Session.GetString("Role") ?? "";
+
+    // ✅ Icon class for each role
+    var iconClass = userRole.ToLower() switch
+    {
+        "sparepart" => "bi-tools",
+        "field engineer" => "bi-person",
+        "coordinator" => "bi-diagram-3",
+        _ => "bi-speedometer2"
+    };
+
+    // ✅ Title for each role
     var dashboardTitle = userRole.ToLower() switch
     {
         "sparepart" => "SparePart Dashboard",
-        "field engineer" => "Field Engineer Dashboard",  // ✅ This is the correct match
-        "coordinator" => "Dashboard",
+        "field engineer" => "Field Engineer Dashboard",
+        "coordinator" => "Coordinator Dashboard",
         _ => "Service Dashboard"
     };
+
+    var showPopup = Context.Session.GetString("ShowPasswordChangePopup");
+   Context.Session.Remove("ShowPasswordChangePopup"); 
+
 }
 
-<div style="text-align: center;">
-    <h1>@dashboardTitle</h1>
+@if (showPopup == "true")
+{
+    <div id="overlay" style="
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.4);
+        z-index: 9998;">
+    </div>
+
+    <div id="password-popup" style="position: fixed; top: 30px; left: 50%;
+         transform: translateX(-50%);
+         background-color: #f9f9f9; border: 1px solid #ccc; padding: 15px 20px;
+         border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 9999;">
+        <p class="mb-2">
+            <strong>🔒 Important:</strong>
+            <div style="margin-top: 8px;">
+                Kindly change your password. If you skip this message now, you won’t be able to change your password later.
+            </div>
+        </p>
+
+
+        <div class="text-end">
+            <a href="/Users/SendOtp" class="btn btn-sm btn-outline-primary me-2">Change Password</a>
+            <button class="btn btn-sm btn-secondary" onclick="closePopup()">Skip</button>
+        </div>
+    </div>
+
+    <script>
+        function closePopup() {
+            document.getElementById('password-popup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        setTimeout(function () {
+            var popup = document.getElementById("password-popup");
+            var overlay = document.getElementById("overlay");
+            if (popup) popup.style.display = "none";
+            if (overlay) overlay.style.display = "none";
+        }, 60000);
+    </script>
+}
+
+
+
+<div class="text-center my-4">
+        <h1>
+            <i class="bi @iconClass me-2" style="font-size: 2rem;"></i>
+            @dashboardTitle
+        </h1>
 </div>
 
+
+
 <div class="d-flex justify-content-center mb-3">
-    <input type="text" id="searchInput" class="form-control w-50 me-2" placeholder="Search by Machine Serial No or Contact Person" />
+    <input type="text" id="searchInput" class="form-control w-50 me-2" placeholder="Search by Machine Serial No" />
     <button class="btn btn-primary" onclick="searchTable()">Search</button>
 </div>
 
-<div class="d-flex justify-content-center">
-    <table class="table table-bordered table-striped text-center">
-        <thead>
-            <tr>
-                <th>Machine Serial Number</th>
-                <th>Company Name</th>
-                <th>Contact Person</th>
-                <th>Token Number</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+<div class="container my-5" style="min-height: 100vh;">
+    <div class="card shadow rounded-4 border-0">
+        <div class="card-header bg-primary text-white text-center py-3 rounded-top-4">
+            <h4 class="mb-0">
+                <i class="bi bi-table"></i> Complaint Overview
+            </h4>
+        </div>
 
-            @{
-                var FModel = Model?.Where(item => item.Role.Trim().ToLower() == userRole.Trim().ToLower()).ToList();
-            }
-            @if (FModel != null && FModel.Any())
-            {
-                @foreach (var item in FModel)
-                {
-                    if (item.Role == "Coordinator" )
-                    {
-                        continue;
-                    }
-                    <tr class="searchable-row"
-                        data-machine="@item.MachineSerialNo?.ToLower()"
-                        data-contactperson="@item.ContactPerson?.ToLower()"
-                        data-status="@item.Status?.ToLower()">
-                        <td>@Html.DisplayFor(modelItem => item.MachineSerialNo)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CompanyName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.ContactPerson)</td>
-                       <td>
-                            <a  asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none">
-                                @item.TokenNumber
-                            </a>
-                        </td>
-                      
-                        <td><strong>@item.Status</strong></td> @* ✅ Status ko sirf display kiya *@
-                        <td>
-
-                            
-                            <a asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-warning">View</a>
-
-                            
-                           
-                        </td>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered text-center align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Machine Serial No</th>
+                        <th>Company Name</th>
+                        <th>Contact Person</th>
+                        <th>Token Number</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="7">No records found</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    @{
+                        var username = Context.Session.GetString("Username");
+                        var userRole1 = Context.Session.GetString("Role");
+                        var uEmpName = Context.Session.GetString("EmployeeName");
+
+                        var FModel = Model?.Where(item =>
+                        (item.Role?.Trim().ToLower() ?? "") == (userRole1?.Trim().ToLower() ?? "") &&
+                        (
+                        userRole1?.Trim().ToLower() != "field engineer" ||
+                        (item.EmployeeName1?.Trim().ToLower() ?? "") == (username?.Trim().ToLower() ?? "")
+                        )
+                        ).ToList();
+                    }
+
+                    @if (FModel != null && FModel.Any())
+                    {
+                        foreach (var item in FModel)
+                        {
+                            if (item.Role == "Coordinator")
+                            {
+                                continue;
+                            }
+
+                            <tr class="searchable-row"
+                                data-machine="@item.MachineSerialNo?.ToLower()"
+                                data-contactperson="@item.ContactPerson?.ToLower()"
+                                data-status="@item.Status?.ToLower()">
+                                <td>@Html.DisplayFor(modelItem => item.MachineSerialNo)</td>
+                                <td>@Html.DisplayFor(modelItem => item.CompanyName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.ContactPerson)</td>
+                                <td>
+                                    <a asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="fw-semibold text-decoration-none text-primary">
+                                        @item.TokenNumber
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark px-3 py-2 rounded-pill">
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        <i class="bi bi-eye-fill me-1"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-muted">No records found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
 <script>
-    function searchTable() {
-        const input = document.getElementById("searchInput").value.toLowerCase();
+  
+     function searchTable() {
+         var input = document.getElementById("searchInput").value.toLowerCase();
+         var rows = document.querySelectorAll(".searchable-row");
+
+         rows.forEach(function (row) {
+             var machine = row.getAttribute("data-machine");
+             var contact = row.getAttribute("data-contactperson");
+             var status = row.getAttribute("data-status");
+
+             // ✅ Always check all rows (even hidden)
+             if (machine.includes(input)) {
+                 row.style.display = "";
+             } else {
+                 // ✅ If it's a "completed" row, hide it again
+                 if (status === "completed") {
+                     row.style.display = "none";
+                 } else {
+                     row.style.display = "none";
+                 }
+             }
+         });
+     }
+
+      document.addEventListener("DOMContentLoaded", function () {
         const rows = document.querySelectorAll(".searchable-row");
-
-        rows.forEach(row => {
-            const machine = (row.dataset.machine || "").toLowerCase();
-            const contact = (row.dataset.contactperson || "").toLowerCase();
-
-            if (machine.includes(input) || contact.includes(input)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
-        });
-    }
-
-    // ✅ Hide completed/cancelled rows initially
-    window.addEventListener("DOMContentLoaded", () => {
-        const rows = document.querySelectorAll(".searchable-row");
-        rows.forEach(row => {
-            const status = (row.dataset.status || "").toLowerCase();
+        rows.forEach(function (row) {
+            const status = row.getAttribute("data-status");
             if (status === "completed" || status === "cancelled") {
                 row.style.display = "none";
+                row.classList.add("hidden-by-default"); // mark for later search
             }
         });
     });
 
-    // ✅ Live search on input
-    document.getElementById("searchInput").addEventListener("input", function () {
-        const value = this.value.trim().toLowerCase();
 
-        if (value === "") {
-            document.querySelectorAll(".searchable-row").forEach(row => {
-                let status = row.dataset.status;
-                row.style.display = (status === "cancelled" || status === "completed") ? "none" : "";
-            });
-        } else {
-            searchTable();
-        }
-    });
-
-    // ✅ Optional: Search on Enter
-    document.getElementById("searchInput").addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            searchTable();
-        }
-    });
 </script>
-
 

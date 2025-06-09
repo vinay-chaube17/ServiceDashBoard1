@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceDashBoard1.Data;
 
@@ -11,9 +12,11 @@ using ServiceDashBoard1.Data;
 namespace ServiceDashBoard1.Migrations
 {
     [DbContext(typeof(ServiceDashBoard1Context))]
-    partial class ServiceDashBoard1ContextModelSnapshot : ModelSnapshot
+    [Migration("20250424085050_AdddraftComplaint")]
+    partial class AdddraftComplaint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,12 +57,6 @@ namespace ServiceDashBoard1.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("EmployeeId1")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EmployeeName1")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageBase64")
@@ -105,7 +102,7 @@ namespace ServiceDashBoard1.Migrations
                     b.ToTable("ComplaintRegistration");
                 });
 
-            modelBuilder.Entity("ServiceDashBoard1.Models.EmployeeAssignComplaint", b =>
+            modelBuilder.Entity("ServiceDashBoard1.Models.DraftComplaint", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -113,24 +110,62 @@ namespace ServiceDashBoard1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ComplaintRegistrationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EmployeeIdNo")
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ComplaintDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContactPerson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageBase64")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Machine")
                         .HasColumnType("int");
 
-                    b.Property<string>("EmployeeNames")
+                    b.Property<string>("MachineSerialNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelectedMainProblems")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelectedSubProblems")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TokenNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ComplaintRegistrationId");
-
-                    b.ToTable("EmployeeAssignComplaints");
+                    b.ToTable("DraftComplaints");
                 });
 
             modelBuilder.Entity("ServiceDashBoard1.Models.MachineDetails", b =>
@@ -258,15 +293,9 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("EmailId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsFirstLogin")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -283,14 +312,7 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("ShowPasswordChangePopup")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("isActive")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -308,22 +330,6 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired();
 
                     b.Navigation("TokenSequence");
-                });
-
-            modelBuilder.Entity("ServiceDashBoard1.Models.EmployeeAssignComplaint", b =>
-                {
-                    b.HasOne("ServiceDashBoard1.Models.ComplaintRegistration", "Complaint")
-                        .WithMany("EmployeeAssignments")
-                        .HasForeignKey("ComplaintRegistrationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Complaint");
-                });
-
-            modelBuilder.Entity("ServiceDashBoard1.Models.ComplaintRegistration", b =>
-                {
-                    b.Navigation("EmployeeAssignments");
                 });
 #pragma warning restore 612, 618
         }

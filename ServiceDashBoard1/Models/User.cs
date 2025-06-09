@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ServiceDashBoard1.Models
 {
@@ -29,5 +30,19 @@ namespace ServiceDashBoard1.Models
         [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; }
         public string Role { get; set; }
+
+        [Required(ErrorMessage ="You have to select.")]
+        public string? isActive { get; set; }
+
+        // ✅ New property to track first-time login
+        public bool IsFirstLogin { get; set; } = true;
+
+        public bool ShowPasswordChangePopup { get; set; } = true;
+
+        // ✅ Ignore ModifiedDate only for this entity
+        public DateTime? CreatedDate { get; set; } = DateTime.Now;
+
+
+
     }
 }

@@ -3,124 +3,132 @@
 
 @{
     ViewData["Title"] = "Create";
+    var userRole = Context.Session.GetString("Role")?.Trim().ToLower();
+
 }
 
 
-<h1 class="text-center">Register Complaint </h1>
+<h1 class="text-center ">
+    <i class="bi bi-pencil-square me-2"></i> Register Complaint
+</h1>
+
+
 
 <div>
     <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary mx-5 ">Back to AdminDashBoard</a>
 </div>
 
-<hr />
-<div class="row" >
-    <div class="justify-content-center align-items-center">
-        <form asp-controller="ComplaintRegistrations" asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="text-center my-3 d-flex justify-content-center">
+    <input type="text" id="searchMachineSerialNo" class="form-control w-50 me-2" placeholder="Enter Machine Serial Number" />
+    <button id="searchBtn" class="btn btn-primary">Enter</button>
+</div>
+<span id="searchError" class="text-danger d-block mt-2 text-center" style="display: none;"></span>
 
-           
-            <!-- Machine Serial Number -->
-            <div class="form-group">
-                <label asp-for="MachineSerialNo" class="control-label"></label>
-                <input asp-for="MachineSerialNo" class="form-control" />
+
+<hr />
+<div class="container my-5">
+    <div class="card shadow-lg rounded-4 p-4">
+
+        <form asp-controller="ComplaintRegistrations" asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <!-- Machine Serial No -->
+            <div class="mb-3">
+                <label asp-for="MachineSerialNo" class="form-label fw-semibold"></label>
+                <input asp-for="MachineSerialNo" class="form-control" readonly />
                 <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
             </div>
 
             <!-- Company Name -->
-            <div class="form-group">
-                <label asp-for="CompanyName" class="control-label"></label>
-                <input asp-for="CompanyName" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="CompanyName" class="form-label fw-semibold"></label>
+                <input asp-for="CompanyName" class="form-control" readonly />
                 <span asp-validation-for="CompanyName" class="text-danger"></span>
             </div>
 
             <!-- Email -->
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label fw-semibold"></label>
                 <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>  <!-- ✅ Error yaha show hoga -->
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
 
-
             <!-- Phone Number -->
-            <div class="form-group">
-                <label asp-for="PhoneNo" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="PhoneNo" class="form-label fw-semibold"></label>
                 <input asp-for="PhoneNo" class="form-control" />
-                <span asp-validation-for="PhoneNo" class="text-danger"></span>  <!-- ✅ Error yaha show hoga -->
+                <span asp-validation-for="PhoneNo" class="text-danger"></span>
             </div>
 
             <!-- Address -->
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label fw-semibold"></label>
+                <input asp-for="Address" class="form-control" readonly />
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
 
             <!-- Contact Person -->
-            <div class="form-group">
-                <label asp-for="ContactPerson" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="ContactPerson" class="form-label fw-semibold"></label>
                 <input asp-for="ContactPerson" class="form-control" />
                 <span asp-validation-for="ContactPerson" class="text-danger"></span>
             </div>
 
             <!-- Complaint Description -->
-            <div class="form-group">
-                <label asp-for="ComplaintDescription" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="ComplaintDescription" class="form-label fw-semibold"></label>
                 <input asp-for="ComplaintDescription" class="form-control" />
                 <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
             </div>
 
-            <!-- Image Base64 -->
             <!-- Image Upload -->
-            <div class="form-group">
-                <label class="control-label">Upload Image</label>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Upload Image</label>
                 <input type="file" id="imageUpload" class="form-control" accept="image/png, image/jpeg" />
                 <input type="hidden" asp-for="ImageBase64" id="imageBase64" />
-                <span id="imageError" class="text-danger" style="display: none;"></span> <!-- Validation Message -->
+                <span id="imageError" class="text-danger" style="display: none;"></span>
+
+                <img id="previewImage" src="" alt="Image Preview" class="img-thumbnail mt-2" style="max-width: 200px; display: none;" />
+                <button type="button" id="removeImage" class="btn btn-sm btn-outline-danger mt-2" style="display: none;">❌ Remove</button>
             </div>
 
-            <!-- Image Preview -->
-            <img id="previewImage" src="" alt="Image Preview" style="max-width: 200px; display: none; margin-top: 10px; margin-right: 15px;" />
-
-            <!-- Remove Image Button (Initially Hidden) -->
-            <button type="button" id="removeImage" style="display: none; margin-top: 10px; padding: 5px 10px; font-size: 16px;"> ❌ </button>
-
-
-           
-            <!-- Main Problems as Checkboxes -->
-            <div class="form-group">
-                <label asp-for="SelectedMainProblems" class="control-label"></label>
-                <select id="SelectedMainProblems" asp-for="SelectedMainProblems" asp-items="ViewBag.MainProblems" class="form-control" multiple="multiple"></select>
-                <div id="MainProblemCheckboxes"></div> <!-- 🔥 Here Checkboxes Will Appear -->
+            <!-- Main Problems -->
+            <div class="mb-3">
+                <label asp-for="SelectedMainProblems" class="form-label fw-semibold">Main Problems</label>
+                <select id="SelectedMainProblems" asp-for="SelectedMainProblems" asp-items="ViewBag.MainProblems" class="form-select" multiple></select>
+                <div id="MainProblemCheckboxes" class="mt-2"></div>
                 <span asp-validation-for="SelectedMainProblems" class="text-danger"></span>
             </div>
 
-
-
-            <input type="hidden" id="HiddenSubProblems" name="SelectedSubProblems" value=""> <!-- ✅ Hidden input added -->
-            <!-- Sub Problems as Checkboxes -->
-            <div class="form-group">
-                <label asp-for="SelectedSubProblems" class="control-label"></label>
-                <select id="SelectedSubProblems" asp-for="SelectedSubProblems" asp-items="ViewBag.SubProblems" class="form-control" multiple="multiple"></select>
-                <div id="SubProblemCheckboxes"></div> <!-- 🔥 Here Checkboxes Will Appear -->
+            <!-- Sub Problems (Moved Just Below Main) -->
+            <div class="mb-3">
+                <input type="hidden" id="HiddenSubProblems" name="SelectedSubProblems" />
+                <label asp-for="SelectedSubProblems" class="form-label fw-semibold">Sub Problems</label>
+                <select id="SelectedSubProblems" asp-for="SelectedSubProblems" asp-items="ViewBag.SubProblems" class="form-select" multiple></select>
+                <div id="SubProblemCheckboxes" class="mt-2"></div>
                 <span asp-validation-for="SelectedSubProblems" class="text-danger"></span>
             </div>
 
-
+            <!-- Assign Role -->
             <div class="mb-3">
-                <label for="Role" class="form-label">AssignTo</label>
-                <select class="form-control" name="Role">
+                <label for="Role" class="form-label fw-semibold">Assign To</label>
+                <select class="form-select" id="roleSelect" name="Role" onchange="toggleTextBox()">
+                    <option value="">Please Assign</option>
                     <option value="Sparepart">Sparepart</option>
                     <option value="Service Engineer">Service Engineer</option>
                     <option value="Field Engineer">Field Engineer</option>
                 </select>
             </div>
 
-
-
-            <div class="form-group text-center mt-4  ">
-                <input type="submit" value="Submit" class="btn btn-success mx-5"
-                       onclick="return confirm('Are you sure you want to submit?');" />      
-
+            <!-- Buttons -->
+            <div class ="d-flex flex-column flex-md-row justify-content-center gap-2 mt-4">
+                <input type="submit" value="Submit" class="btn btn-success px-5 me-3"
+                       onclick="return confirm('Are you sure you want to submit?');" />
+                <button type="submit" name="submitType" value="draft"
+                        formaction="@Url.Action("Draft", "ComplaintRegistrations")"
+                        class="btn btn-secondary px-5 me-3">
+                    Save as Draft
+                </button>
             </div>
         </form>
     </div>
@@ -135,7 +143,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script type="text/javascript">
-       
+
 
                 $(document).ready(function () {
 
@@ -238,7 +246,7 @@
             $("#imageUpload").val("");
             $("#removeImage").hide();
         });
-         
+
 
 
 
@@ -320,7 +328,7 @@
                             var checkbox = $(`<input type="checkbox" value="${subItem.value}" class="subproblem-checkbox" ${isChecked}> ${subItem.text}<br>`);
 
 
-                                 
+
                                 checkbox.change(function () {
                                     var selectedValues = [];
                                     $('.subproblem-checkbox:checked').each(function () {
@@ -360,7 +368,7 @@
         //     e.preventDefault(); Stop form from submitting
         //     return false;
         // }
-        
+
 
 
 
@@ -376,11 +384,144 @@
 
             // 🔹 Convert Main Problems Dropdown to Checkboxes on Load
             convertToCheckbox('SelectedMainProblems', 'MainProblemCheckboxes');
-        
 
-          });
 
-   </script>
+
+                    function fetchMachineDetails() {
+            const serial = $("#searchMachineSerialNo").val().trim();
+
+                 // ✅ Hide previous error message at the start
+        $("#searchError").text("").hide();
+
+            if (serial === "") {
+                $("#searchError").text("Please enter a serial number").show();
+                return;
+            }
+
+            $.ajax({
+                url: '/ComplaintRegistrations/GetDetailsBySerial',
+                type: 'GET',
+                data: { serialNo: serial },
+                success: function (data) {
+                    $("#searchError").hide();
+
+                    $("input[name='MachineSerialNo']").val(serial);
+                    $("input[name='CompanyName']").val(data.companyName);
+                    $("input[name='Email']").val(data.email);
+                    $("input[name='PhoneNo']").val(data.phoneNo);
+                    $("input[name='Address']").val(data.address);
+                    $("input[name='ContactPerson']").val(data.contactPerson);
+                },
+                error: function (xhr) {
+                    let msg = xhr.status === 404 ? "Machine not found!" : "Something went wrong!";
+
+                         // Show pop-up alert
+                     alert(msg); 
+                    // $("#searchError").text(msg).show(); ye msg show karaha tha code 
+
+                    // Clear fields if not found
+                    $("input[name='MachineSerialNo']").val("");
+                    $("input[name='CompanyName']").val("");
+                    $("input[name='Email']").val("");
+                    $("input[name='PhoneNo']").val("");
+                    $("input[name='Address']").val("");
+                    $("input[name='ContactPerson']").val("");
+
+                      // ✅ Clear the search bar
+            $("#searchMachineSerialNo").val("");
+                }
+            });
+        }
+
+        // 🔹 Button Click
+        $("#searchBtn").click(function () {
+            fetchMachineDetails();
+        });
+
+        // 🔹 Enter Key Press
+        $("#searchMachineSerialNo").keypress(function (e) {
+            if (e.which === 13) {
+                e.preventDefault(); // prevent form submission
+                fetchMachineDetails();
+            }
+        });
+ });
+
+          function toggleTextBox() {
+               const role = document.getElementById("roleSelect").value;
+               const noteDiv = document.getElementById("fieldEngineerNoteDiv");
+
+               if (role === "Field Engineer") {
+                   noteDiv.classList.remove("d-none");
+               } else {
+                   noteDiv.classList.add("d-none");
+               }
+           }
+
+           // agar page load pe "Field Engineer" select ho to bhi textbox dikhe
+           window.onload = toggleTextBox;
+
+
+//                    Add an event listener to the employee ID input field
+//                    document.getElementById("FieldEngineerNote").addEventListener("input", function () {
+//             var userId = this.value; Get the value from the input field
+//             if (userId !== "") {
+//                 fetch(`/User/GetUserNameById?id=${userId}`)
+//                     .then(response => response.json())
+//                     .then(data => {
+//                         Artificial delay with setTimeout (not ideal)
+//                         setTimeout(function () {
+//                             if (data.name) {
+//                                 console.log("User found:", data.name);
+//                                 document.getElementById("FieldEngineerName").value = data.name;
+//                             } else {
+//                                 console.log("User not found:", data);
+//                                 document.getElementById("FieldEngineerName").value = "User not found";
+//                             }
+//                         }, 2000);  Delay of 1000ms (2 second)
+//                     })
+//                     .catch(error => {
+//                         console.error("Error fetching user name:", error);
+//                         document.getElementById("FieldEngineerName").value = "Error";
+//                     });
+//             } else {
+//                 document.getElementById("FieldEngineerName").value = "";
+//             }
+//         });
+
+//        function sendSMS() {
+//     const Id = document.getElementById("FieldEngineerNote").value;
+//     const employeeName = document.getElementById("FieldEngineerName").value;
+//              const smsButton = document.getElementById("smsbutton");  Get the button element
+
+//     if (Id || employeeName) {
+//         console.log(Id);
+
+//         fetch(`/Users/SendSMS?id=${Id}`)
+//             .then(response => {
+//                 return response.json();  Convert the response to JSON
+//             })
+//             .then(data => {
+//                 console.log("User found 4:", data.name);
+//                 console.log("User found 5:", data.id);
+//                 if (data.success) {  Check if success is true
+//                     alert("SMS sent successfully to " + employeeName);
+//                              smsButton.disabled = true;  Disable the button after SMS is sent
+//                 } else {
+//                     alert("Failed to send SMS.");
+//                 }
+//             })
+//             .catch(error => {
+//                 console.error("Error sending SMS:", error);  Handle errors from fetch or response
+//                 alert("Error sending SMS.");
+//             });
+//     } else {
+//         alert("Please enter a valid Employee ID and ensure Name is correctly populated.");
+//     }
+// }
+
+
+    </script>
 }
 
 

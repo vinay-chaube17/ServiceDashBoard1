@@ -25,6 +25,9 @@ namespace ServiceDashBoard1.Data
         public DbSet<ServiceDashBoard1.Models.RemarkHistory> RemarkHistories { get; set; } = default!;  // ✅ Add This Line
 
 
+        public DbSet<ServiceDashBoard1.Models.MachineDetails> MachineDetails { get; set; } // Add this line
+
+        public DbSet<ServiceDashBoard1.Models.EmployeeAssignComplaint> EmployeeAssignComplaints{ get; set; } // Add this line
 
 
 

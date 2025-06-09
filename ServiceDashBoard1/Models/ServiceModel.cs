@@ -36,6 +36,7 @@ namespace ServiceDashBoard1.Models
         [NotMapped]
         public List<RemarkHistory>? RemarkHistories { get; set; }
 
+       
 
 
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿    using Microsoft.AspNetCore.Mvc.Rendering;
 using ServiceDashBoard1.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -33,7 +33,7 @@ namespace ServiceDashBoard1.Models
         public string? ImageBase64 { get; set; }
 
         [Display(Name = "AssignTo")]
-        public string Role { get; set; }
+        public string? Role { get; set; }
 
         // ✅ Store multiple selected Main Problems as comma-separated values
         public string SelectedMainProblems { get; set; }
@@ -51,6 +51,14 @@ namespace ServiceDashBoard1.Models
         public int TokenId { get; set; }
 
         public TokenSequence? TokenSequence { get; set; }
+
+        public int? EmployeeId1 { get; set; }
+
+        public string? EmployeeName1 { get; set; }
+
+        // ⚠️  EmployeeAssignments Relationship (IMPORTANT)
+        public virtual ICollection<EmployeeAssignComplaint> EmployeeAssignments { get; set; } = new List<EmployeeAssignComplaint>();
+
 
         [NotMapped] // ⚠️ Isko DB me save nahi karna hai, bas UI control ke liye hai
         public bool CanEdit { get; set; }

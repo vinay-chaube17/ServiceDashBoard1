@@ -4,9 +4,11 @@ using ServiceDashBoard1.Data;
 using ServiceDashBoard1.Enums;
 using ServiceDashBoard1.Migrations;
 using ServiceDashBoard1.Models;
+using ServiceDashBoard1.Services;
 
 namespace ServiceDashBoard1.Controllers
 {
+    [CustomAuthorize]
     public class ServiceController : Controller
     {
         private readonly ServiceDashBoard1Context _context;
@@ -53,6 +55,7 @@ namespace ServiceDashBoard1.Controllers
     .FirstOrDefault();
 
             // ✅ Change Status and Track CheckedBy User
+            
             if (complaint.Status == "New" && currentUserRole != "Coordinator")
             {
                 complaint.Status = "Viewed"; // ✅ Change status to "Viewed"

@@ -5,111 +5,99 @@
     var selectedSubProblems = ViewBag.SelectedSubProblems ?? "";  // Null hone pe empty string set kar raha hai
 }
 
-<h1 class="text-center">Edit Complaint</h1>
-
+<h1 class="text-center mb-4">
+    <i class="bi bi-pencil-square text-warning me-2 fs-2"></i> Edit Complaint
+</h1>
 <hr/>
 
-<div class="row">
-    <div >
+<div class="container my-5">
+    <div class="card shadow-lg rounded-4 p-4">
+
         <form asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
 
-            <div class="form-group">
-                <label asp-for="MachineSerialNo" class="control-label"></label>
+            <!-- Machine Serial Number -->
+            <div class="mb-3">
+                <label asp-for="MachineSerialNo" class="form-label fw-semibold"></label>
                 <input asp-for="MachineSerialNo" class="form-control" readonly />
                 <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="CompanyName" class="control-label"></label>
-                <input asp-for="CompanyName" class="form-control" readonly/>
+            <!-- Company Name -->
+            <div class="mb-3">
+                <label asp-for="CompanyName" class="form-label fw-semibold"></label>
+                <input asp-for="CompanyName" class="form-control" readonly />
                 <span asp-validation-for="CompanyName" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
+            <!-- Email -->
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label fw-semibold"></label>
                 <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>  <!-- ✅ Error yaha show hoga -->
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="PhoneNo" class="control-label"></label>
+            <!-- Phone Number -->
+            <div class="mb-3">
+                <label asp-for="PhoneNo" class="form-label fw-semibold"></label>
                 <input asp-for="PhoneNo" class="form-control" />
                 <span asp-validation-for="PhoneNo" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
+            <!-- Address -->
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label fw-semibold"></label>
                 <input asp-for="Address" class="form-control" readonly />
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="ContactPerson" class="control-label"></label>
+            <!-- Contact Person -->
+            <div class="mb-3">
+                <label asp-for="ContactPerson" class="form-label fw-semibold"></label>
                 <input asp-for="ContactPerson" class="form-control" />
                 <span asp-validation-for="ContactPerson" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="ComplaintDescription" class="control-label"></label>
+            <!-- Complaint Description -->
+            <div class="mb-3">
+                <label asp-for="ComplaintDescription" class="form-label fw-semibold"></label>
                 <input asp-for="ComplaintDescription" class="form-control" />
                 <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
             </div>
 
-            <!-- ✅ Image Upload Input -->
-            <div class="form-group mt-3">
+            <!-- Image Upload -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Upload Image</label>
+                <input type="file" id="imageUpload" class="form-control" accept="image/*" />
+                <input type="hidden" asp-for="ImageBase64" id="ImageBase64" />
+            </div>
 
-                
-               <input type="file" id="imageUpload" class="custom-file-input" accept="image/*"/>
-                 <input type="hidden" asp-for="ImageBase64" id="ImageBase64" />
-                  </div>
-
-            <!-- ✅ Existing Image Display -->
-            <div class="form-group  mt-3">
-              
+            <!-- Preview Existing Image -->
+            <div class="mb-3">
                 @if (!string.IsNullOrEmpty(Model.ImageBase64?.ToString()))
                 {
-                    
-                    <img id="previewImage" src="data:image/png;base64,@(Model.ImageBase64?.ToString())"
-                         class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
-
-                    <!-- ✅ Remove Image Button -->
-                    <button type="button" id="removeImage" onclick="removeUploadedImage()" style="display: inline-block; padding: 5px 10px;">❌</button>
-               
+                    <div class="d-flex align-items-center gap-3">
+                        <img id="previewImage" src="data:image/png;base64,@Model.ImageBase64"
+                             class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeUploadedImage()">❌ Remove</button>
+                    </div>
                 }
                 else
                 {
-                    <p>No image uploaded</p>
+                    <p class="text-muted">No image uploaded</p>
                 }
-
             </div>
 
-            @{
-                var userRole = TempData["UserRole"]?.ToString() ?? "";
-            }
-
-            <div class="mb-3">
-                <label for="Role" class="form-label">AssignTo</label>
-                <input type="text" id="roleDisplay" name="Role" value="@userRole" class="form-control" onclick="showDropdown()" />
-                <select id="roleDropdown" class="form-control d-none" onchange="updateRole()">
-                    <option value="Sparepart" selected="@(userRole == "Sparepart" ? "selected" : null)">Sparepart</option>
-                    <option value="Service Engineer" selected="@(userRole == "Service Engineer" ? "selected" : null)">Service Engineer</option>
-                    <option value="Field Engineer" selected="@(userRole == "Field Engineer" ? "selected" : null)">Field Engineer</option>
-                </select>
-            </div>
-
-
-
-            <!-- ✅ Main Problems Section -->
-            <div class="form-group">
-                <label asp-for="SelectedMainProblems" class="control-label"></label>
-                <input asp-for="SelectedMainProblems" class="form-control" id="SelectedMainProblems" readonly oninput="adjustWidth(this)" style="width:420px;"  />
+            <!-- Main Problems -->
+            <div class="mb-3 col-12">
+                <label asp-for="SelectedMainProblems" class="form-label fw-semibold">Main Problems</label>
+                <input asp-for="SelectedMainProblems" class="form-control" id="SelectedMainProblems" readonly />
                 <input type="hidden" id="HiddenMainProblems" />
-                <div id="mainProblemCheckboxes">
+                <div id="mainProblemCheckboxes" class="mt-2">
                     @foreach (var mainProblem in ViewBag.MainProblems)
                     {
-                        <div class="form-check">
+                        <div class="form-check me-3">
                             <input type="checkbox" class="form-check-input main-problem-checkbox" value="@mainProblem.Value" id="main_@mainProblem.Value">
                             <label class="form-check-label" for="main_@mainProblem.Value">@mainProblem.Text</label>
                         </div>
@@ -117,35 +105,45 @@
                 </div>
             </div>
 
-
-
-            <!-- ✅ Sub Problems Section -->
-            <div class="form-group">
-                <label asp-for="SelectedSubProblems" class="control-label"></label>
-                <input asp-for="SelectedSubProblems" class="form-control" id="SelectedSubProblems" oninput="adjustWidth(this)" style="width:420px;" />
+            <!-- Sub Problems (right under Main Problems) -->
+            <div class="mb-3 col-12">
+                <label asp-for="SelectedSubProblems" class="form-label fw-semibold">Sub Problems</label>
+                <input asp-for="SelectedSubProblems" class="form-control" id="SelectedSubProblems" />
                 <input type="hidden" id="HiddenSubProblems" value="@selectedSubProblems" />
-                 <div id="subProblemCheckboxes"></div>
+                <div id="subProblemCheckboxes" class="mt-2"></div>
             </div>
 
-            <div class="form-group text-center mt-5">
-                <input type="submit" value="Submit" class="btn btn-success mx-5"
+            <!-- Role Selection -->
+            <div class="mb-3 col-md-6">
+                <label for="Role" class="form-label fw-semibold">Assign To</label>
+                @{
+                    var userRole = TempData["UserRole"]?.ToString() ?? "";
+                }
+                <select class="form-select" id="roleDropdown" name="Role">
+                    <option value="">Select</option>
+                    <option value="Sparepart" selected="@(userRole == "Sparepart" ? "selected" : null)">Sparepart</option>
+                    <option value="Service Engineer" selected="@(userRole == "Service Engineer" ? "selected" : null)">Service Engineer</option>
+                    <option value="Field Engineer" selected="@(userRole == "Field Engineer" ? "selected" : null)">Field Engineer</option>
+                </select>
+            </div>
+
+            <!-- Submit & Back -->
+            <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mt-4">
+                <input type="submit" value="Submit" class="btn btn-success px-5 me-3"
                        onclick="return confirm('Are you sure you want to submit?');" />
 
                 @{
                     var role = Context.Session.GetString("Role") ?? "Unknown";
                 }
 
-                @if (role == "Coordinator") //  "coordinator" ka "C" capital ho sakta hai, check karo
+                @if (role == "Coordinator")
                 {
-                   
-                        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary mx-5 ">Back to Coordinator Page</a>
+                    <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary px-4">Back to Coordinator Page</a>
                 }
-                   
-               </div>
+            </div>
         </form>
     </div>
 </div>
-
 
 @section Scripts {
     @{
@@ -153,6 +151,7 @@
     }
 
     <script>
+
 
   
           $(document).ready(function () {

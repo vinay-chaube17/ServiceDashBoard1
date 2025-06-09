@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceDashBoard1.Data;
 
@@ -11,9 +12,11 @@ using ServiceDashBoard1.Data;
 namespace ServiceDashBoard1.Migrations
 {
     [DbContext(typeof(ServiceDashBoard1Context))]
-    partial class ServiceDashBoard1ContextModelSnapshot : ModelSnapshot
+    [Migration("20250506112337_AddemployeidNametable")]
+    partial class AddemployeidNametable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,15 +261,9 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("EmailId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsFirstLogin")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -283,14 +280,7 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("ShowPasswordChangePopup")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("isActive")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -313,17 +303,12 @@ namespace ServiceDashBoard1.Migrations
             modelBuilder.Entity("ServiceDashBoard1.Models.EmployeeAssignComplaint", b =>
                 {
                     b.HasOne("ServiceDashBoard1.Models.ComplaintRegistration", "Complaint")
-                        .WithMany("EmployeeAssignments")
+                        .WithMany()
                         .HasForeignKey("ComplaintRegistrationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Complaint");
-                });
-
-            modelBuilder.Entity("ServiceDashBoard1.Models.ComplaintRegistration", b =>
-                {
-                    b.Navigation("EmployeeAssignments");
                 });
 #pragma warning restore 612, 618
         }
