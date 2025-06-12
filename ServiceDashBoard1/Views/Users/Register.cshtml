@@ -264,6 +264,13 @@
                             </div>
 
                             <div class="mb-3">
+                                <label for="EmployeeId" class="form-label">EmployeeId</label>
+                                <input type="text" class="form-control" id="EmployeeId" name="EmployeeId" value="@Model.Item1?.EmployeeId" />
+                                <span asp-validation-for="Item1.EmployeeId" class="text-danger"></span>
+                            </div>
+
+
+                            <div class="mb-3">
                                 <label for="Username" class="form-label">Username</label>
                                 <input type="text" class="form-control" id="Username" name="Username" value="@Model.Item1?.Username" />
                                 <span asp-validation-for="Item1.Username" class="text-danger"></span>
@@ -314,10 +321,12 @@
                                 <thead class="table-dark sticky-top bg-dark text-white">
                                     <tr>
                                         <th>Role</th>
+                                        <th>EmployeeId</th>
                                         <th>Name</th>
                                         <th>Username</th>
                                         <th>CreatedDate</th>
                                         <th>UserStatus</th>
+                                        
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -325,6 +334,7 @@
                                     {
                                         <tr>
                                             <td>@user.Role</td>
+                                            <td>@user.EmployeeId</td>
                                             <td>@user.Name</td>
                                             <td>@user.Username</td>
                                             <td>@(user.CreatedDate.HasValue ? user.CreatedDate.Value.ToString("dd-MM-yyyy") : "")</td>
@@ -335,13 +345,12 @@
                             </table>
 
                         </div>
-
                     </div>
                 </div>
                 <!-- Button and Textbox section below the table -->
                 <div class="mt-3 text-center px-3">
                     <button id="toggleStatusBtn" class="btn btn-secondary w-50 mx-auto">
-                        Active/Deactive Existing Users
+                        Active/De-Active Existing Users
                     </button>
                     <div id="statusSection" style="display:none;" class="mt-2 mx-auto">
                         <!-- Username input -->

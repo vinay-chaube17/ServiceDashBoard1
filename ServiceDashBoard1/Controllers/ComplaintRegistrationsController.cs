@@ -1,4 +1,4 @@
-﻿        using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -468,14 +468,57 @@ namespace ServiceDashBoard1.Controllers
 
             return View(model);
         }
- //======================================================================================================================================================
-public IActionResult ServiceDashBoard1()
+        //=============================   WHEN SERVICE ENGINEER / fIELD ENGINEER / SPAREPART TEAM LOGIN  =========================================================================================================================
+
+        //public IActionResult ServiceDashBoard1()
+        //{
+        //    var complaints = _context.ComplaintRegistration.ToList();
+        //    return View(complaints);
+        //}
+
+
+
+        public IActionResult ServiceDashBoard1()
         {
+            // Step 1: Update ComplaintRegistration with latest assigned employee
+            var allComplaints = _context.ComplaintRegistration.ToList();
+
+            foreach (var complaint in allComplaints)
+            {
+                var latestAssignment = _context.EmployeeAssignComplaints
+                    .Where(ea => ea.ComplaintRegistrationId == complaint.Id)
+                    .OrderByDescending(ea => ea.Id) // Latest assignment
+                    .FirstOrDefault();
+
+                if (latestAssignment != null)
+                {
+                    complaint.EmployeeId1 = latestAssignment.EmployeeIdNo;
+                    complaint.EmployeeName1 = latestAssignment.EmployeeNames;
+
+                    _context.ComplaintRegistration.Update(complaint);
+                }
+            }
+
+            _context.SaveChanges(); // 🧠 Save updated EmployeeId1/EmployeeName1 to DB
+
             var complaints = _context.ComplaintRegistration.ToList();
+
             return View(complaints);
         }
 
-     
+
+
+
+
+
+
+
+
+
+
+
+        //-------------------------------------------------------------------------------------------------
+
 
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
@@ -583,16 +626,7 @@ public IActionResult ServiceDashBoard1()
 
             Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
             Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-            // yaha maine status udate wala code set kiyahai
-            //var userEmail = HttpContext.Session.GetString("UserEmail");
-            //var currentUser = _context.User
-            //    .Where(u => u.EmailId == userEmail)
-            //    .Select(u => u.Name)
-            //    .FirstOrDefault() ?? "Unknown User";
-
-
-            //var userRole = HttpContext.Session.GetString("Role") ?? "Unknown"; //  Role get karo
-
+           
             
 
             Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
@@ -755,20 +789,7 @@ public IActionResult ServiceDashBoard1()
         }
 
         //------------------------------------------------------------------------------------------------------------------------------------------------------
-        //[HttpGet]
-
-        //public IActionResult FieldEngineer()
-        //{
-        //    var role = HttpContext.Session.GetString("Role");
-
-        //    if (role != "FieldEngineer")
-        //    {
-        //        // Agar user FieldEngineer nahi hai toh access denied ya redirect
-        //        return RedirectToAction("AccessDenied", "Home"); // ya koi bhi page jahan redirect karna ho
-        //    }
-
-        //    return View(); // View: Views/User/FieldEngineerDashboard.cshtml
-        //}
+       
 
         [Route("/ComplaintRegistrations/FieldEngineerDashBoard")]
 
@@ -842,371 +863,6 @@ public IActionResult ServiceDashBoard1()
 
 
 
-
-
-
-        //[HttpGet]
-        //[Route("/ComplaintRegistrations/FieldEngineer")]
-        //public async Task<IActionResult> FieldEngineer(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var complaintRegistration = await _context.ComplaintRegistration.FindAsync(id);
-        //    if (complaintRegistration == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    TempData["UserRole"] = complaintRegistration.Role;
-
-        //    // Convert Stored Main Problem IDs to Names
-        //    var mainProblemIds = complaintRegistration.SelectedMainProblems?.Split(',')
-        //        .Where(s => !string.IsNullOrWhiteSpace(s))
-        //        .Select(int.Parse)
-        //        .ToList() ?? new List<int>();
-
-
-
-        //    List<string> mainProblemNames = mainProblemIds
-        //        .Select(id => Enum.GetName(typeof(MainProblem), id))
-        //        .Where(name => !string.IsNullOrEmpty(name))
-        //        .ToList();
-
-        //    complaintRegistration.SelectedMainProblems = string.Join(", ", mainProblemNames);
-
-        //    // Convert Stored Sub Problem IDs to Names
-        //    var subProblemIds = complaintRegistration.SelectedSubProblems?.Split(',')
-        //        .Where(s => !string.IsNullOrWhiteSpace(s))
-        //        .Select(int.Parse)
-        //        .ToList() ?? new List<int>();
-
-
-        //    Console.WriteLine("Before Saving - Main Problem IDs: " + string.Join(",", mainProblemIds));
-        //    Console.WriteLine("Before Saving - Sub Problem IDs: " + string.Join(",", subProblemIds));
-
-
-        //    HashSet<string> subProblemNames = new HashSet<string>();
-
-        //    foreach (var mainProblemId in mainProblemIds)
-        //    {
-        //        if (Enum.IsDefined(typeof(MainProblem), mainProblemId))
-        //        {
-        //            Type subProblemType = mainProblemId switch
-        //            {
-        //                (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
-        //                (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-        //                (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
-        //                (int)MainProblem.LASER => typeof(LaserSubproblem),
-        //                (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-        //                (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-        //                (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-        //                (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-        //                (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
-        //                (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-        //                (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
-        //                _ => null
-        //            };
-
-        //            Console.WriteLine("Main Problems (IDs): " + subProblemType);
-
-        //            if (subProblemType != null)
-        //            {
-        //                var validSubProblems = subProblemIds
-        //                    .Where(sp => Enum.IsDefined(subProblemType, sp))
-        //                    .Select(sp => Enum.GetName(subProblemType, sp))
-        //                    .Where(name => !string.IsNullOrEmpty(name));
-
-        //                foreach (var subProblemName in validSubProblems)
-        //                {
-        //                    subProblemNames.Add(subProblemName);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    complaintRegistration.SelectedSubProblems = string.Join(", ", subProblemNames);
-
-
-        //    if (string.IsNullOrWhiteSpace(complaintRegistration.SelectedSubProblems))
-        //    {
-        //        ViewBag.SelectedSubProblems = "";
-        //    }
-
-        //    // ✅ Initialize `ViewBag.MainProblems` (Fix for NullReferenceException)
-        //    ViewBag.MainProblems = Enum.GetValues(typeof(MainProblem))
-        //        .Cast<MainProblem>()
-        //        .Select(mp => new SelectListItem
-        //        {
-        //            Value = ((int)mp).ToString(),
-        //            Text = mp.ToString(),
-        //            Selected = mainProblemIds.Contains((int)mp) // Already selected values ko mark karega
-        //        })
-        //        .ToList();
-
-
-        //    ViewBag.SelectedSubProblems = complaintRegistration.SelectedSubProblems;
-
-
-        //    Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-        //    Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-        //    // yaha maine status udate wala code set kiyahai
-        //    //var userEmail = HttpContext.Session.GetString("UserEmail");
-        //    //var currentUser = _context.User
-        //    //    .Where(u => u.EmailId == userEmail)
-        //    //    .Select(u => u.Name)
-        //    //    .FirstOrDefault() ?? "Unknown User";
-
-
-        //    //var userRole = HttpContext.Session.GetString("Role") ?? "Unknown"; //  Role get karo
-
-
-
-        //    Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-        //    Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-
-        //    Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-        //    Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-
-
-        //    return View(complaintRegistration);
-        //}
-
-
-        //[HttpGet]
-        //[Route("/ComplaintRegistrations/FieldEngineer")]
-        //public async Task<IActionResult> FieldEngineer(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var complaintRegistration = await _context.ComplaintRegistration.FindAsync(id);
-        //    if (complaintRegistration == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    TempData["UserRole"] = complaintRegistration.Role;
-
-        //    // Convert Stored Main Problem IDs to Names
-        //    var mainProblemIds = complaintRegistration.SelectedMainProblems?.Split(',')
-        //        .Where(s => !string.IsNullOrWhiteSpace(s))
-        //        .Select(int.Parse)
-        //        .ToList() ?? new List<int>();
-
-        //    List<string> mainProblemNames = mainProblemIds
-        //        .Select(id => Enum.GetName(typeof(MainProblem), id))
-        //        .Where(name => !string.IsNullOrEmpty(name))
-        //        .ToList();
-
-        //    complaintRegistration.SelectedMainProblems = string.Join(", ", mainProblemNames);
-
-        //    // Convert Stored Sub Problem IDs to Names
-        //    var subProblemIds = complaintRegistration.SelectedSubProblems?.Split(',')
-        //        .Where(s => !string.IsNullOrWhiteSpace(s))
-        //        .Select(int.Parse)
-        //        .ToList() ?? new List<int>();
-
-        //    HashSet<string> subProblemNames = new HashSet<string>();
-
-        //    foreach (var mainProblemId in mainProblemIds)
-        //    {
-        //        if (Enum.IsDefined(typeof(MainProblem), mainProblemId))
-        //        {
-        //            Type subProblemType = mainProblemId switch
-        //            {
-        //                (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
-        //                (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-        //                (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
-        //                (int)MainProblem.LASER => typeof(LaserSubproblem),
-        //                (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-        //                (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-        //                (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-        //                (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-        //                (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
-        //                (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-        //                (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
-        //                _ => null
-        //            };
-
-        //            if (subProblemType != null)
-        //            {
-        //                var validSubProblems = subProblemIds
-        //                    .Where(sp => Enum.IsDefined(subProblemType, sp))
-        //                    .Select(sp => Enum.GetName(subProblemType, sp))
-        //                    .Where(name => !string.IsNullOrEmpty(name));
-
-        //                foreach (var subProblemName in validSubProblems)
-        //                {
-        //                    subProblemNames.Add(subProblemName);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    complaintRegistration.SelectedSubProblems = string.Join(", ", subProblemNames);
-
-        //    // ✅ Initialize `ViewBag.MainProblems` (Fix for NullReferenceException)
-        //    ViewBag.MainProblems = Enum.GetValues(typeof(MainProblem))
-        //        .Cast<MainProblem>()
-        //        .Select(mp => new SelectListItem
-        //        {
-        //            Value = ((int)mp).ToString(),
-        //            Text = mp.ToString(),
-        //            Selected = mainProblemIds.Contains((int)mp) // Already selected values ko mark karega
-        //        })
-        //        .ToList();
-
-        //    ViewBag.SelectedSubProblems = complaintRegistration.SelectedSubProblems;
-
-        //    // ✅ Fetch Employee Assignments
-        //    var employeeAssignments = await _context.EmployeeAssignComplaints
-        //        .Where(e => e.ComplaintRegistrationId == id)
-        //        .Select(e => new EmployeeAssignComplaint
-        //        {
-        //            EmployeeIdNo = e.EmployeeIdNo,
-        //            EmployeeNames= e.EmployeeNames
-        //        })
-        //        .ToListAsync();
-
-        //    ViewBag.EmployeeAssignments = employeeAssignments;
-
-        //    Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-        //    Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-
-        //    return View(complaintRegistration);
-        //}
-
-
-        //[HttpGet]
-        //[Route("/ComplaintRegistrations/FieldEngineer")]
-        //public async Task<IActionResult> FieldEngineer(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    // Fetch Complaint Registration
-        //    var complaintRegistration = await _context.ComplaintRegistration
-        //        .Include(c => c.EmployeeAssignments)
-        //        .FirstOrDefaultAsync(c => c.Id == id);
-
-        //    if (complaintRegistration == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    TempData["UserRole"] = complaintRegistration.Role;
-
-        //    // ✅ Convert Stored Main Problem IDs to Names
-        //    var mainProblemIds = complaintRegistration.SelectedMainProblems?.Split(',')
-        //        .Where(s => !string.IsNullOrWhiteSpace(s))
-        //        .Select(int.Parse)
-        //        .ToList() ?? new List<int>();
-
-        //    var mainProblemNames = mainProblemIds
-        //        .Select(id => Enum.GetName(typeof(MainProblem), id))
-        //        .Where(name => !string.IsNullOrEmpty(name))
-        //        .ToList();
-
-        //    complaintRegistration.SelectedMainProblems = string.Join(", ", mainProblemNames);
-
-        //    // ✅ Convert Stored Sub Problem IDs to Names
-        //    var subProblemIds = complaintRegistration.SelectedSubProblems?.Split(',')
-        //        .Where(s => !string.IsNullOrWhiteSpace(s))
-        //        .Select(int.Parse)
-        //        .ToList() ?? new List<int>();
-
-        //    var subProblemNames = new HashSet<string>();
-
-        //    foreach (var mainProblemId in mainProblemIds)
-        //    {
-        //        if (Enum.IsDefined(typeof(MainProblem), mainProblemId))
-        //        {
-        //            Type subProblemType = mainProblemId switch
-        //            {
-        //                (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
-        //                (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-        //                (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
-        //                (int)MainProblem.LASER => typeof(LaserSubproblem),
-        //                (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-        //                (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-        //                (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-        //                (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-        //                (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
-        //                (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-        //                (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
-        //                _ => null
-        //            };
-
-        //            if (subProblemType != null)
-        //            {
-        //                var validSubProblems = subProblemIds
-        //                    .Where(sp => Enum.IsDefined(subProblemType, sp))
-        //                    .Select(sp => Enum.GetName(subProblemType, sp))
-        //                    .Where(name => !string.IsNullOrEmpty(name));
-
-        //                foreach (var subProblemName in validSubProblems)
-        //                {
-        //                    subProblemNames.Add(subProblemName);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    complaintRegistration.SelectedSubProblems = string.Join(", ", subProblemNames);
-
-        //    // ✅ Set the Employee Assignments for the View
-        //    ViewBag.EmployeeAssignments = await GetEmployeeAssignments(id.Value, complaintRegistration);
-        //    ViewBag.MainProblems = GetMainProblemSelectList(mainProblemIds);
-        //    ViewBag.SelectedSubProblems = complaintRegistration.SelectedSubProblems;
-
-        //    return View(complaintRegistration);
-        //}
-
-        //// Helper Methods
-        //private async Task<List<EmployeeAssignComplaint>> GetEmployeeAssignments(int complaintId, ComplaintRegistration complaintRegistration)
-        //{
-        //    var primaryEmployee = new EmployeeAssignComplaint
-        //    {
-        //        EmployeeIdNo = complaintRegistration.EmployeeId1,
-        //        EmployeeNames = complaintRegistration.EmployeeName1
-        //    };
-
-        //    var employeeAssignments = await _context.EmployeeAssignComplaints
-        //        .Where(e => e.ComplaintRegistrationId == complaintId && e.EmployeeIdNo != complaintRegistration.EmployeeId1)
-        //        .Select(e => new EmployeeAssignComplaint
-        //        {
-        //            EmployeeIdNo = e.EmployeeIdNo,
-        //            EmployeeNames = e.EmployeeNames
-        //        })
-        //        .ToListAsync();
-
-        //    if (primaryEmployee.EmployeeIdNo.HasValue && !string.IsNullOrEmpty(primaryEmployee.EmployeeNames))
-        //    {
-        //        employeeAssignments.Insert(0, primaryEmployee);
-        //    }
-
-        //    return employeeAssignments;
-        //}
-
-        //private List<SelectListItem> GetMainProblemSelectList(List<int> selectedIds)
-        //{
-        //    return Enum.GetValues(typeof(MainProblem))
-        //        .Cast<MainProblem>()
-        //        .Select(mp => new SelectListItem
-        //        {
-        //            Value = ((int)mp).ToString(),
-        //            Text = mp.ToString(),
-        //            Selected = selectedIds.Contains((int)mp)
-        //        })
-        //        .ToList();
-        //}
 
         [HttpGet]
         [Route("/ComplaintRegistrations/FieldEngineer")]
@@ -1316,7 +972,7 @@ public IActionResult ServiceDashBoard1()
                 })
                 .ToListAsync();
 
-            if (primaryEmployee.EmployeeIdNo.HasValue && !string.IsNullOrEmpty(primaryEmployee.EmployeeNames))
+            if (!string.IsNullOrEmpty(primaryEmployee.EmployeeIdNo) && !string.IsNullOrEmpty(primaryEmployee.EmployeeNames))
             {
                 employeeAssignments.Insert(0, primaryEmployee);
             }
@@ -1337,12 +993,10 @@ public IActionResult ServiceDashBoard1()
                 .ToList();
         }
 
-        //POST: ComplaintRegistrations/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FieldEngineer(int id, ComplaintRegistration complaintRegistration, List<int> EmployeeId1, List<string> EmployeeName1)
+        public async Task<IActionResult> FieldEngineer(int id, ComplaintRegistration complaintRegistration, List<string> EmployeeId1, List<string> EmployeeName1)
         {
             if (id != complaintRegistration.Id)
             {
@@ -1365,7 +1019,6 @@ public IActionResult ServiceDashBoard1()
             //        ModelState.Remove(key);
             //    }
             //}
-
             ModelState.Remove("EmployeeId1");
 
             if (ModelState.IsValid)
@@ -1458,6 +1111,9 @@ public IActionResult ServiceDashBoard1()
                         EmployeeName1 = EmployeeName1
                             .Where(name => !string.IsNullOrEmpty(name) && name != "User not found")
                             .ToList();
+                        EmployeeId1 = EmployeeId1
+                           .Where(name => !string.IsNullOrEmpty(name) && name != "Id not found")
+                           .ToList();
                         int count = Math.Min(EmployeeId1.Count, EmployeeName1.Count);
 
                         for (int i = 0; i < EmployeeId1.Count; i++)
@@ -1465,24 +1121,25 @@ public IActionResult ServiceDashBoard1()
                             var empId = EmployeeId1[i];
                             var empName = EmployeeName1[i];
 
-                            if (empId != 0 && !string.IsNullOrEmpty(empName) && empName != "User not found")
+                            Console.Write(" ye empid " + empId +" empName" + empName);
+
+                            if (!string.IsNullOrEmpty(empId) && empId != "0" && !string.IsNullOrEmpty(empName) && empName != "User not found")
                             {
-                                // ✅ Check if the assignment already exists to prevent duplicates
-                                var existingAssignment = await _context.EmployeeAssignComplaints
-                                    .FirstOrDefaultAsync(e => e.ComplaintRegistrationId == id && e.EmployeeIdNo == empId);
+                                
+                                    var existingAssignment = await _context.EmployeeAssignComplaints
+                                        .FirstOrDefaultAsync(e => e.ComplaintRegistrationId == id && e.EmployeeIdNo == empId);
 
-                                if (existingAssignment == null)
-                                {
-                                    // ✅ Add new assignment if it doesn't exist
-                                    var newAssignment = new EmployeeAssignComplaint
+                                    if (existingAssignment == null)
                                     {
-                                        ComplaintRegistrationId = id,
-                                        EmployeeIdNo = empId,
-                                        EmployeeNames = empName,
-
-                                    };
-                                    _context.EmployeeAssignComplaints.Add(newAssignment);
-                                }
+                                        var newAssignment = new EmployeeAssignComplaint
+                                        {
+                                            ComplaintRegistrationId = id,
+                                            EmployeeIdNo = empId,
+                                            EmployeeNames = empName,
+                                        };
+                                        _context.EmployeeAssignComplaints.Add(newAssignment);
+                                    }
+                                
                             }
                         }
 

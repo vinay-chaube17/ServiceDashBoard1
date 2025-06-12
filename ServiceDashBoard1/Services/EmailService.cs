@@ -42,6 +42,9 @@ namespace ServiceDashBoard1.Services
 
                
             {
+
+
+
                 smtp.Send(message);
             }
         }
@@ -66,7 +69,7 @@ namespace ServiceDashBoard1.Services
             {
                 Host = SmtpHost,
                 Port = SmtpPort,
-                EnableSsl = true,
+                EnableSsl = false,
                 DeliveryMethod = SmtpDeliveryMethod.Network,
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential(FromEmail, EmailPassword)

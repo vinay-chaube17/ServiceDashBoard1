@@ -17,7 +17,7 @@ namespace ServiceDashBoard1.Models
         public ComplaintRegistration Complaint { get; set; }
 
         // Assigned Employee details
-        public int? EmployeeIdNo { get; set; }
+        public string? EmployeeIdNo { get; set; }
 
         public string? EmployeeNames { get; set; }
 

@@ -9,6 +9,6 @@ namespace ServiceDashBoard1.Models
         public int Id { get; set; } // ✅ ID always = 1
         public int NextTokenNumber { get; set; } // 🔥 Safe Counter
 
-        
+        public int NextEmployeeId { get; set; } // ✅ New Field
     }
 }

@@ -10,13 +10,18 @@ using iText.Kernel.Colors; // Make sure this namespace is added
 using iText.IO.Image; // Add this at the top for image support
 
 
-using System.IO;
+using Path = System.IO.Path;
 
 
 namespace ServiceDashBoard1.Services
 {
     public class PdfService
     {
+        private readonly IWebHostEnvironment _env;
+        public PdfService(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
         public byte[] GenerateComplaintPdf(ServiceModel model)
         {
             using (MemoryStream stream = new MemoryStream())
@@ -33,7 +38,7 @@ namespace ServiceDashBoard1.Services
 
 
                 // Load and add logo above the title
-                string imagePath = "C:\\Users\\vinay.chaubey\\Downloads\\MeraCodeBackup\\ServiceDashBoard1\\ServiceDashBoard1\\wwwroot\\images\\SilLOGO.png"; // or use HostingEnvironment.MapPath if needed
+                string imagePath = Path.Combine(_env.WebRootPath, "images", "SilLOGO.png");
                 ImageData imageData = ImageDataFactory.Create(imagePath);
                 Image logo = new Image(imageData);
                 logo.ScaleToFit(80, 60); // Resize as needed

@@ -21,6 +21,8 @@ namespace ServiceDashBoard1.Models
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone number must be exactly 10 digits.")]
         public long  PhoneNo { get; set; }
 
+        public  string EmployeeId { get; set; }
+
         [Required(ErrorMessage = "Address is required.")]
         public string Address { get; set; }
 

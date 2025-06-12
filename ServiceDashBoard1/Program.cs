@@ -5,6 +5,7 @@ using ServiceDashBoard1.Data;
 using ServiceDashBoard1.Service;
 using ServiceDashBoard1.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using static ServiceDashBoard1.Service.TokenGenerator;
 
 
 
@@ -35,6 +36,8 @@ builder.Services.AddScoped<PdfService>();
 
 
 builder.Services.AddScoped<TokenGenerator>(); // ✅ Register service
+builder.Services.AddScoped<EmployeeIdGenerator>();
+
 
 // Add session service
 builder.Services.AddSession(options =>

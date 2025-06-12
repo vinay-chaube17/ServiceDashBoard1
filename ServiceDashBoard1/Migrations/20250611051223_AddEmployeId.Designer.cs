@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceDashBoard1.Data;
 
@@ -11,9 +12,11 @@ using ServiceDashBoard1.Data;
 namespace ServiceDashBoard1.Migrations
 {
     [DbContext(typeof(ServiceDashBoard1Context))]
-    partial class ServiceDashBoard1ContextModelSnapshot : ModelSnapshot
+    [Migration("20250611051223_AddEmployeId")]
+    partial class AddEmployeId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,8 +59,8 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EmployeeId1")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("EmployeeId1")
+                        .HasColumnType("int");
 
                     b.Property<string>("EmployeeName1")
                         .HasColumnType("nvarchar(max)");
@@ -120,8 +123,8 @@ namespace ServiceDashBoard1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EmployeeIdNo")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("EmployeeIdNo")
+                        .HasColumnType("int");
 
                     b.Property<string>("EmployeeNames")
                         .HasColumnType("nvarchar(max)");
@@ -238,7 +241,7 @@ namespace ServiceDashBoard1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("NextEmployeeId")
+                    b.Property<int?>("NextEmployeeId")
                         .HasColumnType("int");
 
                     b.Property<int>("NextTokenNumber")

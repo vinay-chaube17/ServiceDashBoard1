@@ -17,10 +17,15 @@ namespace ServiceDashBoard1.Controllers
         // Declare a private field for DbContext
         private readonly ServiceDashBoard1Context _context;
 
+        private readonly EmployeeIdGenerator _employeeIdGenerator;
+
+
         // Constructor to inject ApplicationDbContext
-        public UsersController(ServiceDashBoard1Context context)
+        public UsersController(ServiceDashBoard1Context context , EmployeeIdGenerator employeeIdGenerator)
         {
             _context = context;
+
+            _employeeIdGenerator = employeeIdGenerator;
         }
 
 
@@ -45,6 +50,8 @@ namespace ServiceDashBoard1.Controllers
         [HttpPost]
         public ActionResult Register(User user)
         {
+            Console.WriteLine(" Employeeid "+ user.EmployeeId + " UserName" + user.Username);
+           
             if (ModelState.IsValid)
             {
                 // 1️⃣ Email ko clean karo aur original password store karo
@@ -58,6 +65,8 @@ namespace ServiceDashBoard1.Controllers
                     ModelState.AddModelError("", "Invalid Email.");
                     return View(user);
                 }
+
+               
 
                 // 3️⃣ Password ko hash karo aur user ko database me save karo
                 user.Password = PasswordHasher.HashPassword(user.Password);
@@ -110,9 +119,11 @@ namespace ServiceDashBoard1.Controllers
         [HttpGet]
         [Route("User/GetUserNameById")]
 
-        public JsonResult GetUserNameById(int id)
+        public JsonResult GetUserNameById(string id)
         {
-            var user = _context.User.FirstOrDefault(u => u.Id == id);
+            //string empIdStr = id.ToString(); // 👈 Convert to string
+
+            var user = _context.User.FirstOrDefault(u => u.EmployeeId == id);
             
             if (user != null)
             {
@@ -125,9 +136,9 @@ namespace ServiceDashBoard1.Controllers
         [CustomAuthorize]
         [HttpGet]
         [Route("Users/SendSMS")]
-        public JsonResult SendSMS(int id , int complaintId)
+        public JsonResult SendSMS(String id , int complaintId)
         {
-            var user = _context.User.FirstOrDefault(u => u.Id == id);
+            var user = _context.User.FirstOrDefault(u => u.EmployeeId== id);
             var complaint = _context.ComplaintRegistration.FirstOrDefault(c => c.Id == complaintId);
 
 
@@ -137,29 +148,6 @@ namespace ServiceDashBoard1.Controllers
 
             if (user != null && user.PhoneNo != 0 && complaint != null) // <-- bas yahi check sahi hai
             {
-
-                // ✅ If not assigned, then assign
-                //if (employeeAssignment != null)
-                //{
-                //    var newAssignment = new EmployeeAssignComplaint
-                //    {
-                //        ComplaintRegistrationId = complaint.Id,
-                //        EmployeeIdNo = user.Id,
-                //        EmployeeNames = user.Username,
-                //        Description = " "
-                //    };
-
-                //    _context.EmployeeAssignComplaints.Add(newAssignment);
-                //    _context.SaveChanges();
-
-                //    Console.WriteLine($"Employee {user.Name} assigned to complaint {complaint.Id}");
-                //}
-                //else
-                //{
-                //    Console.WriteLine($"Employee {user.Name} already assigned to complaint {complaint.Id}");
-                //}
-
-
 
                 var smsService = new TwilioSMSService();
                 var success = smsService.SendWhatsAppMessage(
@@ -191,6 +179,7 @@ namespace ServiceDashBoard1.Controllers
         }
 
         // Login Method (GET)
+        [HttpGet]
         public ActionResult Login()
         {
             return View();
@@ -204,7 +193,7 @@ namespace ServiceDashBoard1.Controllers
             var existingUser = _context.User
     .FirstOrDefault(u => u.Username == user.Username);
 
-            if (existingUser != null && PasswordHasher.VerifyPassword(user.Password, existingUser.Password) && existingUser.isActive == "Active")
+            if (existingUser != null &&  PasswordHasher.VerifyPassword(user.Password, existingUser.Password) && existingUser.isActive == "Active")
             {
                 // Login Successful
                 HttpContext.Session.SetString("UserEmail", existingUser.EmailId);

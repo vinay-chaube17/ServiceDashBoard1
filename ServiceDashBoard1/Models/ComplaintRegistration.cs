@@ -52,7 +52,7 @@ namespace ServiceDashBoard1.Models
 
         public TokenSequence? TokenSequence { get; set; }
 
-        public int? EmployeeId1 { get; set; }
+        public string? EmployeeId1 { get; set; }
 
         public string? EmployeeName1 { get; set; }
 
