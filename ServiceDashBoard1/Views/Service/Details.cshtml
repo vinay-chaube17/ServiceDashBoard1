@@ -410,10 +410,12 @@
                 </div>
             }
 
-            @if (!isCoordinator )
+            @if (!isCoordinator && !isFieldManager)
             {
                 <div class="text-center mt-3">
-                    @if (userRole != "field operations manager")
+
+
+                    @if (userRole != "coordinator" && userRole != "field operation manager")
                     {
                         <div class="dropdown d-inline">
 
@@ -434,13 +436,22 @@
                             </ul>
                         </div>
                     }
-                    <button type="button" class="btn btn-primary px-4 mx-5" onclick="return submitForm()">Save Complaint</button>
-                    @if (userRole == "field operations manager")
+                    @if (userRole == "field operation manager" )
                     {
                         <a asp-controller="ComplaintRegistrations" asp-action="FieldEngineerDashBoard" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To Field Operation Manager Dashboard</a>
 
-                    }else
+                    }
+                    else if (isCoordinator)
                     {
+                        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To Field Operation Manager Dashboard</a>
+
+                    }
+                    
+                    
+                    else
+                    {
+                        <button type="button" class="btn btn-primary px-4 mx-5" onclick="return submitForm()">Save Complaint</button>
+
                         <a asp-controller="ComplaintRegistrations" asp-action="ServiceDashBoard1" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To ServiceDashboard</a>
 
                     }
@@ -488,7 +499,7 @@
             }
 
             <div>
-                @if (isCoordinator )
+                @if (isCoordinator || isFieldManager)
                 {
                     <div class="text-center mt-4">
                         <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary px-4 fw-bold">
