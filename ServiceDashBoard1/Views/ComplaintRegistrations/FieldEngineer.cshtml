@@ -21,7 +21,7 @@
         </h1>
     </div>
 
-    <!-- ✅ Yahan sirf Field Engineer ke liye dikhane wali cheezen likho -->
+    <!-- Only add things here that should be shown to Field Engineers -->
 }
 
 
@@ -51,7 +51,8 @@
             <div class="form-group">
                 <label asp-for="Email" class="control-label"></label>
                 <input asp-for="Email" class="form-control" readonly/>
-                <span asp-validation-for="Email" class="text-danger"></span>  <!-- ✅ Error yaha show hoga -->
+                <span asp-validation-for="Email" class="text-danger"></span>  <!-- ✅ Error will be shown here -->
+
             </div>
 
             <div class="form-group">
@@ -84,10 +85,11 @@
 
                 @if (!string.IsNullOrEmpty(Model.ImageBase64?.ToString()))
                 {
+                    <img id="previewImage" src="data:image/png;base64,@Model.ImageBase64"
+                         class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
 
-                    <img id="previewImage" src="data:image/png;base64,@(Model.ImageBase64?.ToString())"
-                    class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
-
+                    <!-- ✅ Hidden input to submit ImageBase64 -->
+                    <input type="hidden" name="ImageBase64" value="@Model.ImageBase64" />
                 }
                 else
                 {
@@ -195,6 +197,7 @@
                         </div>
                         <div class="col-md-4 text-start">
                             <button type="button" class="btn btn-primary" onclick="sendSMS(this)">Send SMS</button>
+                            
                         </div>
                     </div>
                 }
@@ -316,6 +319,15 @@
         try {
             const response = await fetch(`/User/GetUserNameById?id=${userId}`);
             const data = await response.json();
+
+             // ✅ Check again in case user clears ID before response returns
+        if (empIdField.value.trim() === "") {
+            empNameField.value = "";
+            smsButton.disabled = true;
+            updateSubmitButtonState();
+            return;
+        }
+
 
             if (data && data.name) {
                 empNameField.value = data.name;

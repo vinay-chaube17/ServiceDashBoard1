@@ -1,0 +1,214 @@
+﻿@using ServiceDashBoard1.Enums
+@using ServiceDashBoard1.Models
+
+@model IEnumerable<ServiceDashBoard1.Models.ComplaintRegistration>
+
+@{
+    ViewData["Title"] = "Index";
+    var showPopup = Context.Session.GetString("ShowPasswordChangePopup");
+    Context.Session.Remove("ShowPasswordChangePopup");
+}
+
+
+@if (showPopup == "true")
+{
+    <div id="overlay" style="
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.4);
+        z-index: 9998;">
+    </div>
+
+    <div id="password-popup" style="position: fixed; top: 30px; left: 50%;
+         transform: translateX(-50%);
+         background-color: #f9f9f9; border: 1px solid #ccc; padding: 15px 20px;
+         border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 9999;">
+        <p class="mb-2">
+            <strong>🔒 Important:</strong>
+            <div style="margin-top: 8px;">
+                Kindly change your password. If you skip this message now, you won’t be able to change your password later.
+            </div>
+        </p>
+        <div class="text-end">
+            <a href="/Users/ResetPassword" class="btn btn-sm btn-outline-primary me-2">Change Password</a>
+            <button class="btn btn-sm btn-secondary" onclick="closePopup()">Skip</button>
+        </div>
+    </div>
+
+    <script>
+        function closePopup() {
+        document.getElementById('password-popup').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        }
+
+        setTimeout(function () {
+        var popup = document.getElementById("password-popup");
+        var overlay = document.getElementById("overlay");
+        if (popup) popup.style.display = "none";
+        if (overlay) overlay.style.display = "none";
+        }, 60000);
+    </script>
+}
+
+
+
+@section PageStyles {
+<style>
+    body {
+    background-image: url('/images/laser-cutting-of-metal-sheets.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    }
+</style>
+ }
+<div class="text-center">
+    <h1 class="text-light fw-bold display-4 text-center" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);"> <i class="bi bi-person-fill"></i>CustomerComplaints</h1>
+
+    <div class="container">
+
+        <div class="d-flex justify-content-start mb-3">
+            <a href="@Url.Action("Create", "ComplaintRegistrations")" class="btn btn-primary">Create New Complaint</a>
+        </div>
+
+
+        <!-- ✅ Search Bar with Button -->
+
+        <input type="text" id="searchInput" class="form-control my-3 mx-auto" style="max-width: 500px;" placeholder="Search by Machine Serial No" oninput="searchTable()" />
+
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+
+            <button class="btn btn-primary mx-5" onclick="searchTable()">Search</button>
+
+            <script>
+                function navigateToRegistration(url) {
+                if (url) {
+                window.location.href = url;
+                }
+                }
+            </script>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<!-- ✅ Centered Table -->
+<div class="d-flex justify-content-center table-responsive mt-4">
+    <table class="table table-bordered table-striped text-center" id="complaintsTable">
+        <thead>
+            <tr>
+                <th>Machine Serial No</th>
+                <th>Company Name</th>
+                <th>Token Number</th>
+                <th>Status</th>
+@*                 <th id="actionHeader">Action</th> <!-- ✅ Initially Hidden Action Column -->
+ *@
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+
+                var isHidden = (item.Status == "Cancelled" || item.Status == "Completed") ? "d-none hide-on-load" : "";
+
+                <tr class="searchable-row @isHidden"
+                data-id="@item.Id"
+                data-checked-by="@item.CheckedBy"
+                data-status="@item.Status.ToLower()"
+                data-contactperson="@item.ContactPerson?.ToLower()">
+
+
+
+                    <td>@item.MachineSerialNo</td>
+                    <td>@item.CompanyName</td>
+                    <td>
+                        <a asp-controller="Service" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none">
+
+                            @item.TokenNumber
+                        </a>
+                    </td>
+                    <td>
+                        @(
+                            item.Status == "Customer Complaint" ? "New Complaint Raise" :
+                            item.Status == "New" ? "Assigned" :
+                            item.Status == "Viewed" ? "Assigned" :
+                            item.Status == "Draft" ? "Assigned" :
+                            item.Status == "Pending" ? "Assigned" :
+                            item.Status == "Hold" ? "Assigned" :
+                            item.Status == "Accepted" ? "Assigned" :
+                            item.Status
+                            )
+                    </td>
+         
+                   @*  <td class="actionColumn">
+                        @if (item.Status == "Customer Complaint")
+                        {
+                            <a href="/ComplaintRegistrations/Edit/@item.Id" class="btn btn-primary">Edit</a>
+                        }
+                        else
+                        {
+                            <span>Not Editable</span>
+                        }
+                    </td> *@
+</tr>
+            }
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+
+
+
+    function searchTable() {
+         let input = document.getElementById("searchInput").value.toLowerCase();
+         let rows = document.querySelectorAll(".searchable-row");
+         let found = false;
+
+         rows.forEach(row => {
+             let serialNo = row.cells[0].textContent.toLowerCase();
+           let status = row.dataset.status;
+            let contactperson = (row.dataset.contactperson || "").toLowerCase();
+
+
+
+             if (serialNo.includes(input)  || contactperson.includes(input)) {
+                 row.style.display = "";
+                 row.classList.remove("d-none");
+
+                 found = true;
+             } else {
+                 row.style.display = "none";
+             }
+         });
+
+
+         document.getElementById("actionHeader").style.display = found ? "" : "none";
+         document.querySelectorAll(".actionColumn").forEach(col => col.style.display = found ? "" : "none");
+     }
+
+     document.getElementById("searchInput").addEventListener("input", function () {
+         if (this.value.trim() === "") {
+
+
+             document.querySelectorAll(".searchable-row").forEach(row => {
+            let status = row.dataset.status;
+            row.style.display = (status === "cancelled" || status === "completed") ? "none" : "";
+        });
+
+
+
+             // document.getElementById("actionHeader").style.display = "none";
+             // document.querySelectorAll(".actionColumn").forEach(col => col.style.display = "none");
+         }
+     });
+</script>
+

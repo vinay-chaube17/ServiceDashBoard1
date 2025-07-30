@@ -1,6 +1,11 @@
 ﻿namespace ServiceDashBoard1.Enums
 {
-   
+    // These enums represent subproblem categories associated with each MainProblem.
+    //  They are used in the ComplaintRegistrationsController to dynamically display relevant subproblems
+    //    in the UI based on the selected main problem type.
+    // Each enum value acts as an identifier to store and retrieve the specific subproblem selected by the user.
+    // This approach helps keep the structure clean, strongly typed, and easy to maintain.
+
     public enum TrainingSubproblem
     {
         APPLICATION = 1,
@@ -147,7 +152,7 @@
 
     public enum OtherIssuesSubproblem
     {
-        OTHER_ISSUES_ISSUES = 1101
+        OTHER_ISSUES = 1101
 
     }
 }

@@ -77,8 +77,29 @@
 
     <button class="btn btn-primary mx-5" onclick="searchTable()">Search</button>
     <a asp-action="Create" class="btn btn-success mx-5">New Complaint</a>
-    <a href="@Url.Action("Register", "Users")" class="btn btn-success mx-5"> New Register Here</a>
-    <a href="@Url.Action("SendOtp", "Users")" class="btn btn-dark mx-5"> Forgot Password</a>
+    
+@*     <a href="@Url.Action("Register", "Users")" class="btn btn-success mx-5"> New Register Here</a>
+ *@
+
+            <select 
+                    class=" btn btn-warning mx-5"
+                    onchange="navigateToRegistration(this.value)">
+
+                <option selected disabled>Select Registration</option>
+                <option value="@Url.Action("Register", "Users")">Employee Registration</option>
+                <option value="@Url.Action("CustomerRegistration", "Users")">Customer Registration</option>
+            </select>
+
+            <script>
+                function navigateToRegistration(url) {
+                    if (url) {
+                        window.location.href = url;
+                    }
+                }
+            </script>
+
+
+ <a href="@Url.Action("SendOtp", "Users")" class="btn btn-dark mx-5"> Forgot Password</a>
     </div>
 </div>
 
@@ -96,6 +117,7 @@
                 <th>Company Name</th>
                 <th>ContactPerson</th>
                 <th>Token Number</th>
+                <th>Assined To</th>
                 <th>Status</th>
                 @* <th>Checked By</th> <!-- ✅ Added Checked By Column --> *@
 
@@ -121,7 +143,7 @@
                     <td>@item.CompanyName</td>
                     <td>@item.ContactPerson</td>  <!-- ✅ Added Email Column -->
                     <td>
-                        @if (item.Status == "Draft")
+                        @if (item.Status == "Draft" || item.Status == "Customer Complaint")
                         {
                             <a asp-controller="ComplaintRegistrations" asp-action="Edit" asp-route-id="@item.Id" class="text-decoration-none">
                                 @item.TokenNumber
@@ -143,7 +165,22 @@
                             </a>
                         }
                     </td>
-                    <td>@item.Status</td>
+                    <td>
+                        @Html.Raw(string.IsNullOrEmpty(item.Role) || item.Role == "customer"
+                                 ? "<span class='text-danger'><i class='bi bi-exclamation-circle'></i> Awaiting engineer</span>"
+                                 : $"<span class='text-success'>{item.Role}</span>")
+                    </td>
+                    <td>
+                        @(
+                            
+                            item.Status == "New" ? "Assigned" :
+
+                          
+
+                         
+                            item.Status
+                            )
+                    </td>
                     @* <td>@item.CheckedBy</td>  <!-- ✅ This will now show the correct user --> *@
 
 
@@ -166,6 +203,10 @@
 </div>
 
 <script>
+
+
+
+
     function searchTable() {
          let input = document.getElementById("searchInput").value.toLowerCase();
          let rows = document.querySelectorAll(".searchable-row");

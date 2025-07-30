@@ -2,13 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using ServiceDashBoard1.Data;
 using ServiceDashBoard1.Enums;
-using ServiceDashBoard1.Migrations;
 using ServiceDashBoard1.Models;
 using ServiceDashBoard1.Services;
 
 namespace ServiceDashBoard1.Controllers
 {
-    [CustomAuthorize]
+    //[CustomAuthorize]
     public class ServiceController : Controller
     {
         private readonly ServiceDashBoard1Context _context;
@@ -33,22 +32,38 @@ namespace ServiceDashBoard1.Controllers
             return "Unknown Main Problem";
         }
 
-        // ✅ Complaint details ko fetch karna
+        // GET Action Method: Displays detailed complaint information using complaint ID.
+        // If the complaint is new and the current user is not a coordinator, it updates status to "Viewed".
+        // Fetches related problem names and the latest remarks from the database.
+        // Returns a filled ServiceModel to the View for display.
+
+
+
         [HttpGet]
         public IActionResult Details(int id)
         {
             var complaint = _context.ComplaintRegistration.FirstOrDefault(c => c.Id == id);
             if (complaint == null) return NotFound();
 
-            //var complaint2 = _context.ServiceModels.FirstOrDefault(c => c.Id == id);
-            //if (complaint2 == null) return NotFound();
+            
 
 
             var userEmail = HttpContext.Session.GetString("UserEmail"); // Get email from session
+
+
+            var currentEmployeeRegistration = _context.EmployeeRegistration
+               .Where(u => u.Email == userEmail)
+               .Select(u => u.Role)
+               .FirstOrDefault() ?? "Unknown User"; // Get user name from DB
+
+
             var currentUser = _context.User
                 .Where(u => u.EmailId == userEmail)
                 .Select(u => u.Name)
                 .FirstOrDefault() ?? "Unknown User"; // Get user name from DB
+
+
+
             var currentUserRole = _context.User
     .Where(u => u.EmailId == userEmail)
     .Select(u => u.Role)
@@ -86,7 +101,7 @@ namespace ServiceDashBoard1.Controllers
 
             // ✅ Fetch Main Problem Names
             var mainProblemNames = mainProblemIds
-                .Select(mpId => GetMainProblemNameById(mpId))
+                .Select(mpId => GetMainProblemNameById(mpId).Replace("_"," "))
                 .Where(name => !string.IsNullOrEmpty(name))
                 .ToList();
 
@@ -96,19 +111,23 @@ namespace ServiceDashBoard1.Controllers
                 .ToList();
 
 
-            // ✅ Foreign Key Relationship se Latest Remark Fetch Karna
+            // Fetch the latest remark using the foreign key (ComplaintId) from the ServiceModels table.
             var latestRemark = _context.ServiceModels
-                .Where(s => s.ComplaintId == id) // ✅ Foreign Key Filter (ComplaintId = id)
-                .OrderByDescending(s => s.Id) // ✅ Latest Remark Fetch Karna (Agar ID auto-increment ho)
-                .Select(s => s.Remark)
-                .FirstOrDefault(); // ✅ Agar Remark nahi hai toh NULL return karega
+                .Where(s => s.ComplaintId == id) // Foreign Key Filter (ComplaintId = id)
+                .OrderByDescending(s => s.Id) // Fetch the latest remark based on highest ID (assuming ID is auto-incremented)
 
-            // ✅ Foreign Key Relationship se Latest Remark Fetch Karna
+                .Select(s => s.Remark)
+                .FirstOrDefault(); // If no remark is found, it will return NULL
+
+
+            // Fetch the latest final remark using foreign key relationship
             var latestFinalRemark = _context.ServiceModels
-                .Where(s => s.ComplaintId == id) // ✅ Foreign Key Filter (ComplaintId = id)
-                .OrderByDescending(s => s.Id) // ✅ Latest Remark Fetch Karna (Agar ID auto-increment ho)
+                .Where(s => s.ComplaintId == id) //  Foreign Key Filter (ComplaintId = id)
+                .OrderByDescending(s => s.Id) // ✅ Fetch the latest final remark (based on auto-incremented ID)
+
                 .Select(s => s.FinalRemark)
-                .FirstOrDefault(); // ✅ Agar Remark nahi hai toh NULL return karega
+                .FirstOrDefault();//  If no final remark is found, it will return NULL
+
 
             var latestRemarkBy = _context.ServiceModels
     .Where(s => s.ComplaintId == id)
@@ -123,9 +142,7 @@ namespace ServiceDashBoard1.Controllers
                 .FirstOrDefault();
 
 
-            Console.WriteLine("Fetched Main Problem Names: " + string.Join(", ", mainProblemNames));
-            Console.WriteLine("Fetched Sub Problem Names: " + string.Join(", ", subProblemNames));
-
+            
             var model = new ServiceModel
             {
                 ComplaintId = complaint.Id,
@@ -148,6 +165,10 @@ namespace ServiceDashBoard1.Controllers
                 RemarkBy = latestRemarkBy,
                 FinalRemarkBy = latestFinalRemarkBy
             };
+
+            ViewBag.Role = currentEmployeeRegistration;
+           
+
 
             return View(model);
         }
@@ -172,6 +193,10 @@ namespace ServiceDashBoard1.Controllers
             return "Unknown SubProblem";
         }
 
+        // POST Action Method: Updates complaint status to "Accepted".
+        // Adds a blank remark in ServiceModel if no entry exists for the complaint.
+        // Only processes if complaint status is "New", "Viewed", "Pending", or "Hold".
+        // Redirects to the Complaint Dashboard after update.
 
 
         [HttpPost]
@@ -183,7 +208,6 @@ namespace ServiceDashBoard1.Controllers
             {
                 return NotFound();
             }
-            // ✅ "New" aur "Viewed" dono ko "Pending" banane dena
             if (complaint.Status == "New" || complaint.Status == "Viewed")
             {
                 complaint.Status = "Viewed";
@@ -249,6 +273,10 @@ namespace ServiceDashBoard1.Controllers
         }
 
 
+        // POST Action Method: Updates the complaint status to "Hold".
+        // Saves remark and final remark with current user's name and timestamp.
+        // Adds remark to history and updates or creates a ServiceModel entry.
+        // Redirects to the Complaint Dashboard after saving.
 
         [HttpPost]
         [Route("Service/Hold")]
@@ -332,7 +360,13 @@ namespace ServiceDashBoard1.Controllers
 
             return RedirectToAction(nameof(ComplaintRegistrationsController.ServiceDashBoard1), "ComplaintRegistrations");
         }
- [HttpPost]
+
+        // POST Action Method: Updates the complaint status to "Pending".
+        // Saves remarks and final remarks with the current user's name and timestamp.
+        // Adds or updates the entry in the ServiceModel table and stores remark history.
+        // Redirects to the Complaint Dashboard after saving.
+
+        [HttpPost]
         [Route("Service/Pending")]
         public IActionResult Pending(int ComplaintId, string remark, string finalremark)
         {
@@ -413,7 +447,13 @@ namespace ServiceDashBoard1.Controllers
 
             return RedirectToAction(nameof(ComplaintRegistrationsController.ServiceDashBoard1), "ComplaintRegistrations");
         }
-  [HttpPost]
+
+        // POST Action Method: Updates the complaint status to "Cancelled".
+        // Saves remarks and final remarks along with the current user's name.
+        // If an entry already exists, it updates it; otherwise, it creates a new one.
+        // After saving, it redirects to the Complaint Dashboard.
+
+        [HttpPost]
         [Route("Service/Cancelled")]
         public IActionResult Cancelled(int ComplaintId, string remark , string finalremark)
         {
@@ -422,7 +462,7 @@ namespace ServiceDashBoard1.Controllers
             {
                 return NotFound();
             }
-            // ✅ "New" aur "Viewed" dono ko "Pending" banane dena
+            // "New" and "Viewed" status to  both they make "Pending" 
             if (complaint.Status == "Viewed" || complaint.Status == "Cancelled" || complaint.Status == "Accepted" || complaint.Status == "Pending" || complaint.Status == "Hold" || complaint.Status == "On Hold")
             {
                 complaint.Status = "Cancelled";
@@ -480,9 +520,10 @@ namespace ServiceDashBoard1.Controllers
         }
 
 
+        // POST Action Method: Called when service is marked as "Completed" and remarks are saved.
+        // Route: /Service/Completed
+        // Accepts a ServiceModel object with ComplaintId, Remark, and FinalRemark data.
 
-
-        // ✅ Remark Save Karna
         [HttpPost]
         [Route("Service/Completed")]
         public IActionResult SaveRemark(ServiceModel model)
@@ -496,7 +537,7 @@ namespace ServiceDashBoard1.Controllers
 
             if (complaint == null)
             {
-                return NotFound(); // ✅ Agar complaint nahi mili toh error return karo  
+                return NotFound(); 
             }
 
             // ✅ Get Current User

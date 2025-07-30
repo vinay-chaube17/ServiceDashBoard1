@@ -3,38 +3,59 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
 using ServiceDashBoard1.Data;
 using ServiceDashBoard1.Enums;
 using ServiceDashBoard1.Models;
 using ServiceDashBoard1.Service;
 using ServiceDashBoard1.Services;
+using Microsoft.AspNetCore.Mvc;
+
 using static System.Net.Mime.MediaTypeNames;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ServiceDashBoard1.Controllers
 {
+    //This is  a Custom Attribute used safer login, None can enter into the application without login  
     [CustomAuthorize]
+
+    //This is ComplaintRegistration controller 
     public class ComplaintRegistrationsController : Controller
     {
+
+        // Here i am define all my dependencies which is used is this controller 
+
         private readonly ServiceDashBoard1Context _context;
         private readonly TokenGenerator _tokenGenerator;
         private readonly ComplaintService _complaintService;
         private readonly PdfService _pdfService;
+        private readonly ServiceReportContext _reportContext;
+        private readonly SapService _sapService;
 
 
 
-        // ✅ Correct: Single constructor with all dependencies
-        public ComplaintRegistrationsController(ServiceDashBoard1Context context, TokenGenerator tokenGenerator, ComplaintService complaintService , PdfService pdfService)
+
+        // Correct: Single constructor with all dependencies i.e It is constructor type dependencies
+        // when use dependencies you have to mention into the constructor for further Use 
+        //If you are consuming a services wby any method then you ave to mention in HTTP PIPELINE in programe.cs file 
+        //builder.Services.AddScoped<ComplaintService>(); here i am defining my service
+
+        public ComplaintRegistrationsController(ServiceDashBoard1Context context, ServiceReportContext reportContext, TokenGenerator tokenGenerator, ComplaintService complaintService , PdfService pdfService , SapService sapService)
         {
             _context = context;
             _tokenGenerator = tokenGenerator;
             _complaintService = complaintService;
             _pdfService = pdfService;
+            _reportContext = reportContext;
+            _sapService = sapService;
 
         }
+
+        //This action method use to get Compliant PDF once engineer COMPLETED/CANCELLED that complaint 
 
         [HttpGet]
         public IActionResult DownloadComplaintPdf(int id)
@@ -45,11 +66,15 @@ namespace ServiceDashBoard1.Controllers
                 return NotFound();
             }
 
+            // Converting a complaint into PDF here we are using pdfservice which is located on SERVICE folder 
+
             var pdfBytes = _pdfService.GenerateComplaintPdf(complaint);
 
             return File(pdfBytes, "application/pdf", $"Complaint_{id}.pdf");
         }
 
+
+        //If Coordinator want to Draft complaint on that time this action method will be called!
 
         [HttpPost]
         [Route("ComplaintRegistrations/Draft")]
@@ -76,13 +101,14 @@ namespace ServiceDashBoard1.Controllers
                     Role = model.Role,
                     SelectedMainProblems = model.SelectedMainProblems,
                     SelectedSubProblems = model.SelectedSubProblems,
+                    TokenId = 1,
                     Status = "Draft"
                 };
 
                 _context.Add(draft);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction("Index", "ComplaintREgistrations"); // or show success message
+                return RedirectToAction("Index", "ComplaintRegistrations"); // or show success message
             }
             // 🛑 Add this to handle all code paths
             return View(model);
@@ -92,7 +118,7 @@ namespace ServiceDashBoard1.Controllers
 
 
 
-        //------STATUS UPDATE KARNE K LIYE CODE HAI OR BAKI CODE SERVICES FOLDER K ADNER LIKHA HAI ----------------------------
+        // To update a status of complaint and Rest of the code written in service folder in complaintservice class
 
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, string status)
@@ -111,8 +137,8 @@ namespace ServiceDashBoard1.Controllers
             return BadRequest("Failed to update status");
         }
 
-        //------SEARCH BAR KARNE K LIYE CODE HAI OR BAKI CODE SERVICES FOLDER K ADNER LIKHA HAI ----------------------------
-
+        //This action method hit When we want to search complaint using machine serial in index Page and Rest of the code written in service folder in complaintservice class
+ 
 
         [HttpPost]
         public async Task<IActionResult> Search(string searchQuery)
@@ -128,7 +154,10 @@ namespace ServiceDashBoard1.Controllers
             return RedirectToAction("Index");
         }
 
-
+        // This action method is triggered when creating a new complaint.
+        // First, it searches for the machine using the machine serial number
+        // to verify whether the machine exists in the MasterData table.
+        // And return the data in JSON format to the view 
 
         [HttpGet]
         public IActionResult GetDetailsBySerial(string serialNo)
@@ -138,26 +167,168 @@ namespace ServiceDashBoard1.Controllers
                 return BadRequest("Serial number is required.");
             }
 
-            var machine = _context.MachineDetails
+            var machine = _reportContext.MasterData
+                .FirstOrDefault(m => m.MachineSerialNumber == serialNo);
+
+            var machine1 = _context.EmployeeRegistration
                 .FirstOrDefault(m => m.MachineSerialNo == serialNo);
+
+            bool alreadyRegistered = machine1 != null;
 
             if (machine == null)
             {
                 return NotFound("Machine not found.");
             }
+          
 
             return Json(new
             {
+                alreadyRegistered,
                 companyName = machine.CompanyName,
-                email = machine.Email,
-                phoneNo = machine.PhoneNo,
-                address = machine.Address,
-                contactPerson = machine.ContactPerson
+                email = machine1?.Email ?? "", // blank if null
+                phoneNo = machine1?.PhoneNo ?? "",
+                address = machine.CompanyAddress,
+                contactPerson = machine1?.ContactPersonName ?? "",
+                machinetype = machine1?.MachineType ?? ""
+
+
             });
         }
 
-       
+        // This action method is triggered when you want to register a Customer. with CompanyName
+        //When XYZ company employee login then only their company related Complaint will ve visible to them
+     
 
+        //[HttpGet]
+        //public IActionResult GetDetailsfromCompanyName(string companyname)
+        //{
+        //    if (string.IsNullOrWhiteSpace(companyname))
+        //    {
+        //        return BadRequest("Serial number is required.");
+        //    }
+
+        //    var machine = _reportContext.MasterData
+        //        .FirstOrDefault(m => m.CompanyName == companyname);
+
+        //    //if (machine == null)
+        //    //{
+        //    //    return NotFound("Machine not found.");
+        //    //}
+
+        //    return Json(new
+        //    {
+        //        companyName = machine.CompanyName,
+        //        email = machine.Email,
+        //        //phoneNo = machine.PhoneNo,
+        //        address = machine.CompanyAddress,
+        //        //contactPerson = machine.ContactPerson
+        //    });
+        //}
+
+        // This action method currently not in used in future you can use this method to fetch a details from Masterdata 
+
+        [HttpGet]
+        public async Task<IActionResult> GetDetailsBySerialForCustomerRegistration(string serialNo)
+        {
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(serialNo))
+                {
+                    return BadRequest("Serial number is required.");
+                }
+
+                // 1. Get current user email from session or User
+                var userEmail = HttpContext.Session.GetString("UserEmail"); // or User.Identity.Name
+
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User not logged in.");
+                }
+
+                // 2. Find the employee's company
+                var machine1 = _context.EmployeeRegistration
+                    .FirstOrDefault(e => e.Email == userEmail && e.MachineSerialNo == serialNo);
+
+                bool alreadyRegistered = machine1 != null;
+
+
+                if (machine1== null)
+                {
+                    return Unauthorized("Employee not found.");
+                }
+
+                // 3. Find the machine by serial number
+                var machine = await _sapService.GetServiceCallBySerialAsync(serialNo);
+
+
+                if (machine == null)
+                {
+                    return NotFound("Machine not found.");
+                }
+
+                // 4. Verify machine's company matches the user's company
+                if (!string.Equals(machine.CustomerName, machine1.CompanyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Forbid("You are not allowed to access this machine.");
+                }
+
+                // 5. Return the machine details
+                return Json(new
+                {
+                    alreadyRegistered,
+                    companyName = machine.CustomerName,
+                    email = machine1?.Email ?? "", // blank if null
+                    phoneNo = machine1?.PhoneNo ?? "",
+                    address = machine.BPShipToAddress,
+                    contactPerson = machine1?.ContactPersonName ?? "",
+                    machinetype = machine1?.MachineType ?? ""
+                });
+            }
+            catch (Exception ex)
+            {
+                // Optional: Use a logger here if available
+                Console.WriteLine("Error in GetDetailsBySerialForCustomerRegistration: " + ex.Message);
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult GetRegisteredMachinesSerialnoForCustomer()
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("UserEmail");
+
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User not logged in.");
+                }
+
+                var machineList = _context.EmployeeRegistration
+                    .Where(e => e.Email == userEmail)
+                    .Select(e => e.MachineSerialNo)
+                    .Distinct()
+                    .ToList();
+
+                return Json(new
+                {
+                   
+                    machines = machineList
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in GetRegisteredMachinesForCustomer: " + ex.Message);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
+
+
+
+        //This action method is used for create a index view and show all the complaint register in this application or complaint registration table
         public IActionResult Index()
         {
             var complaints = _context.ComplaintRegistration.ToList();
@@ -197,15 +368,15 @@ namespace ServiceDashBoard1.Controllers
                         {
                             (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
                             (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-                            (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
+                            (int)MainProblem.PALLET_MACHINE => typeof(PelletMachineSubproblem),
                             (int)MainProblem.LASER => typeof(LaserSubproblem),
                             (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-                            (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-                            (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-                            (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-                            (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
+                            (int)MainProblem.EXHAUST_SUCTION => typeof(ExhaustSuctionSubproblem),
+                            (int)MainProblem.NESTING_SOFTWARE => typeof(NestingSoftwareSubproblem),
+                            (int)MainProblem.CUTTING_APP => typeof(CuttingAppSubproblem),
+                            (int)MainProblem.CUTTING_HEAD => typeof(CuttingHeadSubproblem),
                             (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-                            (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
+                            (int)MainProblem.OTHER_ISSUES => typeof(OtherIssuesSubproblem),
                             _ => null
                         };
 
@@ -232,9 +403,9 @@ namespace ServiceDashBoard1.Controllers
             
             return View(complaints);
         }
-// ============================================================================END===========================================================================
 
-        // GET: ComplaintRegistrations/Details/5
+        
+        // This action method gives a  ComplaintRegistrations Details view 
         public async Task<IActionResult> Information(int? id)
         {
             if (id == null)
@@ -252,8 +423,78 @@ namespace ServiceDashBoard1.Controllers
             return View(complaintRegistration);
         }
 
-        
 
+
+
+        // This action method is triggered when customer want to check all their complain.
+        // This actiom method represent Customer Complaint index 
+
+
+        [HttpGet]
+        [Route("ComplaintRegistrations/CustomerComplaintIndex")]
+        public async Task<IActionResult> CustomerComplaintIndex()
+        {
+            // 1. Get currently logged-in user's email
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+
+            // 2. Find the employee/customer record using email
+            var customer = await _context.EmployeeRegistration
+                .FirstOrDefaultAsync(e => e.Email == userEmail);
+
+            if (customer == null)
+            {
+                return Unauthorized();
+            }
+
+            // Get all machine serial numbers assigned to this customer
+            var userMachines = await _context.EmployeeRegistration
+                .Where(e => e.Email == customer.Email)
+                .Select(e => e.MachineSerialNo)
+                .ToListAsync();
+
+            var complaints = await _context.ComplaintRegistration
+                .Where(c => userMachines.Contains(c.MachineSerialNo))
+                .ToListAsync();
+            return View(complaints); // ✅ View will only show complaints for this customer
+        }
+
+
+
+        //This Action method is trigged to show  customer complaint page 
+
+
+        [HttpGet]
+        [Route("ComplaintRegistrations/CustomerComplaint")]
+        public IActionResult CustomerComplaint()
+        {
+            var model = new ComplaintRegistrationViewModel
+            {
+                MainProblemList = Enum.GetValues(typeof(MainProblem))
+                                       .Cast<MainProblem>()
+                                       .Select(mp => new SelectListItem
+                                       {
+                                           Value = ((int)mp).ToString(),
+                                           Text = mp.ToString()
+                                       })
+                                       .ToList(),
+
+                SubProblemList = new List<SelectListItem>() // Initially empty
+            };
+
+            ViewBag.MainProblems = model.MainProblemList;
+            ViewBag.SubProblems = model.SubProblemList;
+
+           
+
+
+            return View(model);
+        }
+
+
+
+
+
+// This action method is trigged when coordinator want to see Complaint registration view
         [HttpGet]
         public IActionResult Create()
         {
@@ -264,7 +505,7 @@ namespace ServiceDashBoard1.Controllers
                                       .Select(mp => new SelectListItem
                                       {
                                           Value = ((int)mp).ToString(),
-                                          Text = mp.ToString()
+                                          Text = mp.ToString().Replace("_"," ")
                                       })
                                       .ToList(),
 
@@ -274,14 +515,15 @@ namespace ServiceDashBoard1.Controllers
             ViewBag.MainProblems = model.MainProblemList;
             ViewBag.SubProblems = model.SubProblemList;
 
-            //Console.WriteLine($"ViewBag.MainProblems Count: {((List<SelectListItem>)ViewBag.MainProblems).Count}");
-            //Console.WriteLine($"ViewBag.SubProblems Count: {((List<SelectListItem>)ViewBag.SubProblems).Count}");
-
+            
 
             return View(model);
         }
 
- [HttpGet]
+        // This is a GET action method that displays sub-problems based on the selected main problem ID from the frontend.
+        // It retrieves the related sub-problems and prepares them for saving to the database.
+
+        [HttpGet]
         public JsonResult GetSubProblems([FromQuery] List<int> mainProblemIds)
         {
             var result = new List<object>();
@@ -292,13 +534,10 @@ namespace ServiceDashBoard1.Controllers
                 {
                     var subProblems = GetSubProblemListByMainProblemId(id);
 
-                    Console.WriteLine($"MainProblem ID: {id}, SubProblems: {string.Join(", ", subProblems.Select(s => s.Text))}");
-                    Console.WriteLine($"MainProblem ID: {id}, SubProblems: {string.Join(", ", subProblems.Select(s => s.Text))}");
-
 
                     if (Enum.IsDefined(typeof(MainProblem), id))  // ✅ Ensure id is valid
                     {
-                        var mainProblemName = ((MainProblem)id).ToString();
+                        var mainProblemName = ((MainProblem)id).ToString().Replace("_"," ");
 
                         result.Add(new
                         {
@@ -311,9 +550,7 @@ namespace ServiceDashBoard1.Controllers
                 }
             }
 
-            Console.WriteLine("Total MainProblem IDs received: " + mainProblemIds.Count);
-            //Console.WriteLine("Final Result JSON: " + JsonSerializer.Serialize(result));
-
+           
             return Json(result);
         }
 
@@ -335,7 +572,7 @@ namespace ServiceDashBoard1.Controllers
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
                         .ToList();
 
-                case (int)MainProblem.PALLETMACHINE:
+                case (int)MainProblem.PALLET_MACHINE:
                     return Enum.GetValues(typeof(PelletMachineSubproblem))
                         .Cast<PelletMachineSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
@@ -353,25 +590,25 @@ namespace ServiceDashBoard1.Controllers
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
                         .ToList();
 
-                case (int)MainProblem.EXHAUSTSUCTION:
+                case (int)MainProblem.EXHAUST_SUCTION:
                     return Enum.GetValues(typeof(ExhaustSuctionSubproblem))
                         .Cast<ExhaustSuctionSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
                         .ToList();
 
-                case (int)MainProblem.NESTINGSOFTWARE:
+                case (int)MainProblem.NESTING_SOFTWARE:
                     return Enum.GetValues(typeof(NestingSoftwareSubproblem))
                         .Cast<NestingSoftwareSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
                         .ToList();
 
-                case (int)MainProblem.CUTTINGAPP:
+                case (int)MainProblem.CUTTING_APP:
                     return Enum.GetValues(typeof(CuttingAppSubproblem))
                         .Cast<CuttingAppSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
                         .ToList();
 
-                case (int)MainProblem.CUTTINGHEAD:
+                case (int)MainProblem.CUTTING_HEAD:
                     return Enum.GetValues(typeof(CuttingHeadSubproblem))
                         .Cast<CuttingHeadSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
@@ -382,8 +619,8 @@ namespace ServiceDashBoard1.Controllers
                         .Cast<SoftwareSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
                         .ToList();
-
-                case (int)MainProblem.OTHERISSUES:
+    
+                case (int)MainProblem.OTHER_ISSUES:
                     return Enum.GetValues(typeof(OtherIssuesSubproblem))
                         .Cast<OtherIssuesSubproblem>()
                         .Select(sp => new SelectListItem { Value = ((int)sp).ToString(), Text = sp.ToString().Replace("_", " ") })
@@ -393,34 +630,62 @@ namespace ServiceDashBoard1.Controllers
                     return new List<SelectListItem>(); // ✅ If no match, return empty list
             }
         }
+
+        //This a POST Action method and it will trigged when Co-ordinator want to create complaint when customer call.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ComplaintRegistrationViewModel model)
+        public async Task<IActionResult> Create(ComplaintRegistrationViewModel model , string submitType )
         {
-            
+            var role = HttpContext.Session.GetString("Role")?.Trim().ToLower();
 
-            if (string.IsNullOrEmpty(model.Status))
+
+            if (submitType == "draft")
             {
-                model.Status = "New"; // ✅ Default status set karna
+                model.Status = "Draft";
+            }
+            else if (string.IsNullOrEmpty(model.Status))
+            {
+                model.Status = "New";
             }
 
 
-            Console.WriteLine($"Raw Selected Main Problems: {string.Join(",", model.SelectedMainProblems ?? new List<string>())}");
-            Console.WriteLine($"Raw Selected Sub Problems: {string.Join(",", model.SelectedSubProblems ?? new List<string>())}");
-            
 
-            model.TokenNumber = _tokenGenerator.GenerateToken();
 
-            Console.WriteLine($"Generated Token Number: {model.TokenNumber}");
-            Console.WriteLine($"Generated Status : {model.Status}");
 
+           model.TokenNumber = _tokenGenerator.GenerateToken();
 
            
-            //ModelState.Clear(); // Q USE KIYA......Issue yeh tha ki `TokenNumber` form se nahi aa raha tha, isliye ModelState usko missing maan kar invalid ho raha tha. Humne `model.TokenNumber = _tokenGenerator.GenerateToken();` se value set ki, lekin ModelState pehle se invalid tha. Isko fix karne ke liye `ModelState.Clear();` kiya, taaki purani validation errors remove ho jayein. Ab `TokenNumber` properly consider ho raha hai aur data save ho raha hai. ✅
+
             ModelState.Remove("TokenNumber");
             ModelState.Remove("Status");
-            Console.WriteLine($"Generated Status : {model.ImageBase64}");
 
+            if (role == "customer")
+            {
+                ModelState.Remove("Status");
+                ModelState.Remove("Role");
+                model.Role = "customer";
+                model.Status = "Customer Complaint"; // optional: override just to be safe
+                ModelState.Remove("submitType");
+            }
+
+
+            // Validate image conditionally based on MainProblems
+            var selectedMainProblems = model.SelectedMainProblems?
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Select(p => ((MainProblem)int.Parse(p)).ToString().ToLower())
+                .ToList() ?? new List<string>();
+
+            bool isOnlyTraining = selectedMainProblems.Count == 1 && selectedMainProblems[0] == "training";
+
+            if (!isOnlyTraining && string.IsNullOrWhiteSpace(model.ImageBase64))
+            {
+                ModelState.AddModelError("ImageBase64", "Image is required unless only 'Training' is selected.");
+            }
+            else if (isOnlyTraining && string.IsNullOrWhiteSpace(model.ImageBase64))
+            {
+                model.ImageBase64 = null;  // ✅ Store empty string, NOT NULL
+            }
+            Console.WriteLine("SubmitType: " + submitType);
 
             if (ModelState.IsValid)
             {
@@ -437,24 +702,41 @@ namespace ServiceDashBoard1.Controllers
                     ContactPerson = model.ContactPerson,
                     ComplaintDescription = model.ComplaintDescription,
                     ImageBase64 = model.ImageBase64,
-                    Role = model.Role,
-                    
-                    // Convert List<int> to comma-separated string (e.g., "1,2,5")
-                    SelectedMainProblems = model.SelectedMainProblems != null? string.Join(",", model.SelectedMainProblems.Where(s => !string.IsNullOrWhiteSpace(s))): null,
+                 Role = model.Role,
+                 TokenId= 1,
+
+                 Status = model.Status,
+                 SelectedMainProblems = model.SelectedMainProblems != null? string.Join(",", model.SelectedMainProblems.Where(s => !string.IsNullOrWhiteSpace(s))): null,
                     SelectedSubProblems = model.SelectedSubProblems != null? string.Join(",", model.SelectedSubProblems.Where(s => !string.IsNullOrWhiteSpace(s))): null
                 };
-                //Console.WriteLine("Selected Main Problems: " + registration.SelectedMainProblems);
-                //Console.WriteLine("Selected Sub Problems: " + registration.SelectedSubProblems);
-
-                Console.WriteLine("Final Stored Main Problems: " + registration.SelectedMainProblems);
-                Console.WriteLine("Final Stored Sub Problems: " + registration.SelectedSubProblems);
-                Console.WriteLine("Final Stored token numer: " + registration.TokenNumber);
 
 
+                
+               
+
+                if (submitType == "submit")
+                {
+                    registration.Status = "New";
+                }
+               
 
                 _context.Add(registration);
+                Console.WriteLine("Final status : " + registration.Status);
+
+
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+
+                if (role == "customer")
+                {
+                    return RedirectToAction(nameof(CustomerComplaintIndex));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                    
             }
 
             // Re-populate ViewBag to avoid dropdown null issue
@@ -463,21 +745,17 @@ namespace ServiceDashBoard1.Controllers
                 .Select(e => new SelectListItem
                 {
                     Value = ((int)e).ToString(),
-                    Text = e.ToString()
+                    Text = e.ToString().Replace("_"," ")
                 }).ToList();
 
             return View(model);
         }
-        //=============================   WHEN SERVICE ENGINEER / fIELD ENGINEER / SPAREPART TEAM LOGIN  =========================================================================================================================
+     
 
-        //public IActionResult ServiceDashBoard1()
-        //{
-        //    var complaints = _context.ComplaintRegistration.ToList();
-        //    return View(complaints);
-        //}
-
-
-
+        /// This is a GET action method that returns a view based on the type of engineer who is logged in 
+        // (e.g., Spare Parts, Service, or Field Engineer).
+        // When the engineer logs in, they are redirected to this page to view complaints and 
+        // provide complaint-related problem details or solutions.
         public IActionResult ServiceDashBoard1()
         {
             // Step 1: Update ComplaintRegistration with latest assigned employee
@@ -499,7 +777,7 @@ namespace ServiceDashBoard1.Controllers
                 }
             }
 
-            _context.SaveChanges(); // 🧠 Save updated EmployeeId1/EmployeeName1 to DB
+            _context.SaveChanges(); // Save updated EmployeeId1/EmployeeName1 to DB
 
             var complaints = _context.ComplaintRegistration.ToList();
 
@@ -516,9 +794,8 @@ namespace ServiceDashBoard1.Controllers
 
 
 
-
-        //-------------------------------------------------------------------------------------------------
-
+//This is get action method it trigged when coordinator want to edit a complaint register by the Coordinator/Customer during status (view/new/draft(only for Coordinator)) 
+//Once it status change to this (ex assigned , pending, hold ) then it is not be edited 
 
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
@@ -545,7 +822,7 @@ namespace ServiceDashBoard1.Controllers
 
 
             List<string> mainProblemNames = mainProblemIds
-                .Select(id => Enum.GetName(typeof(MainProblem), id))
+                .Select(id => Enum.GetName(typeof(MainProblem), id)?.Replace("_", " "))
                 .Where(name => !string.IsNullOrEmpty(name))
                 .ToList();
 
@@ -558,9 +835,7 @@ namespace ServiceDashBoard1.Controllers
                 .ToList() ?? new List<int>();
 
 
-            Console.WriteLine("Before Saving - Main Problem IDs: " + string.Join(",", mainProblemIds));
-            Console.WriteLine("Before Saving - Sub Problem IDs: " + string.Join(",", subProblemIds));
-          
+           
 
             HashSet<string> subProblemNames = new HashSet<string>();
 
@@ -572,25 +847,24 @@ namespace ServiceDashBoard1.Controllers
                     {
                         (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
                         (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-                        (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
+                        (int)MainProblem.PALLET_MACHINE => typeof(PelletMachineSubproblem),
                         (int)MainProblem.LASER => typeof(LaserSubproblem),
                         (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-                        (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-                        (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-                        (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-                        (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
+                        (int)MainProblem.EXHAUST_SUCTION => typeof(ExhaustSuctionSubproblem),
+                        (int)MainProblem.NESTING_SOFTWARE => typeof(NestingSoftwareSubproblem),
+                        (int)MainProblem.CUTTING_APP => typeof(CuttingAppSubproblem),
+                        (int)MainProblem.CUTTING_HEAD => typeof(CuttingHeadSubproblem),
                         (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-                        (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
+                        (int)MainProblem.OTHER_ISSUES => typeof(OtherIssuesSubproblem),
                         _ => null
                     };
 
-                    Console.WriteLine("Main Problems (IDs): " + subProblemType);
 
                     if (subProblemType != null)
                     {
                         var validSubProblems = subProblemIds
                             .Where(sp => Enum.IsDefined(subProblemType, sp))
-                            .Select(sp => Enum.GetName(subProblemType, sp))
+                            .Select(sp => Enum.GetName(subProblemType, sp).Replace("_", " "))
                             .Where(name => !string.IsNullOrEmpty(name));
 
                         foreach (var subProblemName in validSubProblems)
@@ -615,7 +889,7 @@ namespace ServiceDashBoard1.Controllers
                 .Select(mp => new SelectListItem
                 {
                     Value = ((int)mp).ToString(),
-                    Text = mp.ToString(),
+                    Text = mp.ToString().Replace("_", " "),
                     Selected = mainProblemIds.Contains((int)mp) // Already selected values ko mark karega
                 })
                 .ToList();
@@ -624,16 +898,6 @@ namespace ServiceDashBoard1.Controllers
             ViewBag.SelectedSubProblems = complaintRegistration.SelectedSubProblems;
 
 
-            Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-            Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-           
-            
-
-            Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-            Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
-
-            Console.WriteLine("Main Problems (IDs): " + complaintRegistration.SelectedMainProblems);
-            Console.WriteLine("Sub Problems (IDs): " + complaintRegistration.SelectedSubProblems);
 
 
             return View(complaintRegistration);
@@ -651,27 +915,46 @@ namespace ServiceDashBoard1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,MachineSerialNo,CompanyName,Email,PhoneNo,Address,ContactPerson,ComplaintDescription,ImageBase64,Role,SelectedMainProblems,SelectedSubProblems,CreatedDate,ModifiedDate")] ComplaintRegistration complaintRegistration)
         {
+            var role = HttpContext.Session.GetString("Role")?.Trim().ToLower();
             if (id != complaintRegistration.Id)
             {
                 return NotFound();
             }
 
-            Console.WriteLine($"Role Value (Before Save): {complaintRegistration.Role ?? "NULL"}");
-
-
-            // ✅ Debugging: Check values before processing
-            Console.WriteLine($"SelectedMainProblemsEdit wala  (Before Processing): {complaintRegistration.SelectedMainProblems}");
-            Console.WriteLine($"SelectedSubProblemsEdit wala (Before Processing): {complaintRegistration.SelectedSubProblems}");
-
-            //complaintRegistration.TokenNumber = _tokenGenerator.GenerateToken();
-            //ModelState.Clear();
+          
             ModelState.Remove("TokenNumber");
-            //ModelState.Remove("Status");
-         ;
+
+            // Validate image conditionally based on MainProblems
+            var selectedMainProblems = complaintRegistration.SelectedMainProblems?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+    .Select(p => p.Trim())
+    .Select(p =>
+    {
+        if (Enum.TryParse<MainProblem>(p, true, out var enumValue))
+        {
+            return enumValue.ToString().ToLower(); // ensure consistency
+        }
+        return null;
+    })
+    .Where(p => p != null)
+    .ToList() ?? new List<string>();
+
+            bool isOnlyTraining = selectedMainProblems.Count == 1 && selectedMainProblems[0] == "training";
+
+            if (!isOnlyTraining && string.IsNullOrEmpty(complaintRegistration.ImageBase64))
+            {
+                ModelState.AddModelError("ImageBase64", "Image is required unless only 'Training' is selected as main problem.");
+               
+            }
+            else if (isOnlyTraining && string.IsNullOrEmpty(complaintRegistration.ImageBase64))
+            {
+                complaintRegistration.ImageBase64 = null; // prevent NULL from reaching DB
+            }
+
+
 
             if (ModelState.IsValid)
             {
-                Console.WriteLine($"Role Value (Before Save): {complaintRegistration.Role ?? "NULL"}");
 
                 try
                 {
@@ -686,17 +969,28 @@ namespace ServiceDashBoard1.Controllers
 
                     // ✅ Preserve CreatedDate
                     complaintRegistration.CreatedDate = existingData.CreatedDate;
+                    complaintRegistration.TokenId = 1;
 
-                    // ✅ Enum Names ko IDs me Convert Karo
+                  
+
+
+
+                    // ✅ Enum convert Name into ID's
+
                     if (!string.IsNullOrEmpty(complaintRegistration.SelectedMainProblems))
                     {
                         var mainProblemIds = complaintRegistration.SelectedMainProblems
-                            .Split(',')
-                            .Select(name => Enum.TryParse(typeof(MainProblem), name.Trim(), out var id) ? ((int)id).ToString() : null)
-                            .Where(id => id != null)
-                            .ToList();
+    .Split(',')
+    .Select(name =>
+    {
+        var enumName = name.Trim().Replace(" ", "_");  // 🔁 Convert back to as per enum
+        return Enum.TryParse(typeof(MainProblem), enumName, true, out var id)
+            ? ((int)id).ToString()
+            : null;
+    })
+    .Where(id => id != null)
+    .ToList();
 
-                        Console.WriteLine($"Role Value (Before Save): {mainProblemIds}");
 
                         complaintRegistration.SelectedMainProblems = string.Join(",", mainProblemIds);
                     }
@@ -730,7 +1024,7 @@ namespace ServiceDashBoard1.Controllers
                                         return ((int)enumValue).ToString();
                                     }
                                 }
-                                Console.WriteLine($"⚠ Warning: '{name}' ka koi matching enum nahi mila!"); // Debugging ke liye
+
                                 return null;
                             })
                             .Where(id => id != null)
@@ -740,13 +1034,8 @@ namespace ServiceDashBoard1.Controllers
                     }
 
 
-                    Console.WriteLine($"Final Stored Main Problems (IDs): {complaintRegistration.SelectedMainProblems}");
 
-                    Console.WriteLine($"Final Stored Sub Problems (IDs): {complaintRegistration.SelectedSubProblems}");
-
-                    Console.WriteLine($"Final Stored Main Problems (IDs): {complaintRegistration.SelectedMainProblems}");
-                    Console.WriteLine($"Final Stored Sub Problems (IDs): {complaintRegistration.SelectedSubProblems}");
-
+                   
                     var userEmail = HttpContext.Session.GetString("UserEmail");
                     var currentUser1 = _context.User
                         .Where(u => u.EmailId == userEmail)
@@ -754,6 +1043,10 @@ namespace ServiceDashBoard1.Controllers
                         .FirstOrDefault() ?? "Unknown User";
 
                     var userRole = HttpContext.Session.GetString("Role") ?? "Unknown"; // 🔥 Role get karo
+                    if( role == "customer") {
+                        complaintRegistration.Status = "Customer Complaint";
+                    }
+
 
 
                     _context.Update(complaintRegistration);
@@ -762,6 +1055,11 @@ namespace ServiceDashBoard1.Controllers
                     if (userRole == "Coordinator")
                     {
                         return RedirectToAction(nameof(Index));
+
+                    }
+                    else if (userRole == "Customer")
+                    {
+                        return RedirectToAction(nameof(CustomerComplaintIndex));
 
                     }
                     else
@@ -781,15 +1079,33 @@ namespace ServiceDashBoard1.Controllers
                     }
                 }
 
-                    //return RedirectToAction(nameof(Index));
                 
             }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.MainProblems = Enum.GetValues(typeof(MainProblem))
+                    .Cast<MainProblem>()
+                    .Select(mp => new SelectListItem
+                    {
+                        Text = mp.ToString(),
+                        Value = ((int)mp).ToString()
+                    }).ToList();
+
+                // ✅ SubProblems bhi bhejna zaroori hai
+                ViewBag.SelectedSubProblems = complaintRegistration.SelectedSubProblems;
+
+                return View(complaintRegistration);
+            }
+
 
             return View(complaintRegistration);
         }
 
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-       
+
+        // This is a GET action method that displays the Field Operations Manager dashboard.
+        // This page shows all complaints that have been assigned to Field Engineers by the Coordinator
+        // before they are officially registered under a specific Field Engineer.
 
         [Route("/ComplaintRegistrations/FieldEngineerDashBoard")]
 
@@ -813,8 +1129,7 @@ namespace ServiceDashBoard1.Controllers
                     .ToList() ?? new List<int>();
 
                 List<string> mainProblemNames = mainProblemIds
-                    .Select(id => Enum.GetName(typeof(MainProblem), id))
-                    .Where(name => !string.IsNullOrEmpty(name))
+                    .Select(id => Enum.GetName(typeof(MainProblem), id)?.Replace("_", " ")).Where(name => !string.IsNullOrEmpty(name))
                     .ToList();
 
                 HashSet<string> subProblemNames = new HashSet<string>();
@@ -827,15 +1142,15 @@ namespace ServiceDashBoard1.Controllers
                         {
                             (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
                             (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-                            (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
+                            (int)MainProblem.PALLET_MACHINE => typeof(PelletMachineSubproblem),
                             (int)MainProblem.LASER => typeof(LaserSubproblem),
                             (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-                            (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-                            (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-                            (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-                            (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
+                            (int)MainProblem.EXHAUST_SUCTION => typeof(ExhaustSuctionSubproblem),
+                            (int)MainProblem.NESTING_SOFTWARE => typeof(NestingSoftwareSubproblem),
+                            (int)MainProblem.CUTTING_APP => typeof(CuttingAppSubproblem),
+                            (int)MainProblem.CUTTING_HEAD => typeof(CuttingHeadSubproblem),
                             (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-                            (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
+                            (int)MainProblem.OTHER_ISSUES => typeof(OtherIssuesSubproblem),
                             _ => null
                         };
 
@@ -853,16 +1168,15 @@ namespace ServiceDashBoard1.Controllers
                         }
                     }
                 }
-
-                complaint.SelectedMainProblems = string.Join(", ", mainProblemNames);
-                complaint.SelectedSubProblems = string.Join(", ", subProblemNames);
             }
 
             return View("FieldEngineerDashBoard", complaints); // 👈 Make sure your View name matches
         }
 
 
-
+        // This is a GET action method that returns the Field Engineer view page.
+        // Field Operations Managers use this page to assign complaints to Field Engineers
+        // based on their specialization related to the specific complaint.
 
         [HttpGet]
         [Route("/ComplaintRegistrations/FieldEngineer")]
@@ -915,15 +1229,15 @@ namespace ServiceDashBoard1.Controllers
                     {
                         (int)MainProblem.TRAINING => typeof(TrainingSubproblem),
                         (int)MainProblem.MACHINE => typeof(MachineSubproblem),
-                        (int)MainProblem.PALLETMACHINE => typeof(PelletMachineSubproblem),
+                        (int)MainProblem.PALLET_MACHINE => typeof(PelletMachineSubproblem),
                         (int)MainProblem.LASER => typeof(LaserSubproblem),
                         (int)MainProblem.CHILLER => typeof(ChillerSubproblem),
-                        (int)MainProblem.EXHAUSTSUCTION => typeof(ExhaustSuctionSubproblem),
-                        (int)MainProblem.NESTINGSOFTWARE => typeof(NestingSoftwareSubproblem),
-                        (int)MainProblem.CUTTINGAPP => typeof(CuttingAppSubproblem),
-                        (int)MainProblem.CUTTINGHEAD => typeof(CuttingHeadSubproblem),
+                        (int)MainProblem.EXHAUST_SUCTION => typeof(ExhaustSuctionSubproblem),
+                        (int)MainProblem.NESTING_SOFTWARE => typeof(NestingSoftwareSubproblem),
+                        (int)MainProblem.CUTTING_APP => typeof(CuttingAppSubproblem),
+                        (int)MainProblem.CUTTING_HEAD => typeof(CuttingHeadSubproblem),
                         (int)MainProblem.SOFTWARE => typeof(SoftwareSubproblem),
-                        (int)MainProblem.OTHERISSUES => typeof(OtherIssuesSubproblem),
+                        (int)MainProblem.OTHER_ISSUES => typeof(OtherIssuesSubproblem),
                         _ => null
                     };
 
@@ -993,7 +1307,11 @@ namespace ServiceDashBoard1.Controllers
                 .ToList();
         }
 
-        
+        // This is a POST action method that submits the complaint along with the assigned Field Engineer.
+        // Field Operations Managers use this method to assign complaints to Field Engineers
+        // based on their specialization relevant to the specific complaint.
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FieldEngineer(int id, ComplaintRegistration complaintRegistration, List<string> EmployeeId1, List<string> EmployeeName1)
@@ -1005,10 +1323,7 @@ namespace ServiceDashBoard1.Controllers
 
             Console.WriteLine($"Role Value (Before Save): {complaintRegistration.Role ?? "NULL"}");
 
-            // ✅ Debugging: Check values before processing
-            Console.WriteLine($"SelectedMainProblemsEdit wala  (Before Processing): {complaintRegistration.SelectedMainProblems}");
-            Console.WriteLine($"SelectedSubProblemsEdit wala (Before Processing): {complaintRegistration.SelectedSubProblems}");
-
+            
             //complaintRegistration.TokenNumber = _tokenGenerator.GenerateToken();
             //ModelState.Clear();
             ModelState.Remove("TokenNumber");
@@ -1036,6 +1351,7 @@ namespace ServiceDashBoard1.Controllers
 
                     // ✅ Preserve CreatedDate
                     complaintRegistration.CreatedDate = existingData.CreatedDate;
+                    complaintRegistration.TokenId = 1;
 
                     // ✅ Enum Names ko IDs me Convert Karo
                     if (!string.IsNullOrEmpty(complaintRegistration.SelectedMainProblems))
@@ -1046,7 +1362,6 @@ namespace ServiceDashBoard1.Controllers
                             .Where(id => id != null)
                             .ToList();
 
-                        Console.WriteLine($"Role Value (Before Save): {mainProblemIds}");
 
                         complaintRegistration.SelectedMainProblems = string.Join(",", mainProblemIds);
                     }
@@ -1080,7 +1395,6 @@ namespace ServiceDashBoard1.Controllers
                                         return ((int)enumValue).ToString();
                                     }
                                 }
-                                Console.WriteLine($"⚠ Warning: '{name}' ka koi matching enum nahi mila!"); // Debugging ke liye
                                 return null;
                             })
                             .Where(id => id != null)
@@ -1089,8 +1403,6 @@ namespace ServiceDashBoard1.Controllers
                         complaintRegistration.SelectedSubProblems = string.Join(",", subProblemIds);
                     }
 
-                    Console.WriteLine($"Final Stored Main Problems (IDs): {complaintRegistration.SelectedMainProblems}");
-                    Console.WriteLine($"Final Stored Sub Problems (IDs): {complaintRegistration.SelectedSubProblems}");
 
                     var userEmail = HttpContext.Session.GetString("UserEmail");
                     var currentUser1 = _context.User
@@ -1121,7 +1433,6 @@ namespace ServiceDashBoard1.Controllers
                             var empId = EmployeeId1[i];
                             var empName = EmployeeName1[i];
 
-                            Console.Write(" ye empid " + empId +" empName" + empName);
 
                             if (!string.IsNullOrEmpty(empId) && empId != "0" && !string.IsNullOrEmpty(empName) && empName != "User not found")
                             {
@@ -1177,11 +1488,9 @@ namespace ServiceDashBoard1.Controllers
 
 
 
-        //------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-        // GET: ComplaintRegistrations/Delete/5
+        //This a Get action method it will show delete view page 
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -1199,7 +1508,9 @@ namespace ServiceDashBoard1.Controllers
             return View(complaintRegistration);
         }
 
-        // POST: ComplaintRegistrations/Delete/5
+
+        //This is a Post action method for deleting a complaint as per their id  
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -8,12 +8,21 @@ namespace ServiceDashBoard1.Services
     public class ComplaintService
     {
 
+
+
         private readonly ServiceDashBoard1Context _context;
 
         public ComplaintService(ServiceDashBoard1Context context)
         {
             _context = context;
         }
+
+        // This method is used to search a complaint based on either Machine Serial Number or Email.
+        // If the input string is null or empty, it returns null.
+        // Otherwise, it queries the ComplaintRegistration table and returns the first matching record.
+        // Only exact matches are considered for both MachineSerialNo and Email.
+        // This is helpful for quick lookup during service or admin dashboard operations.
+
 
         public async Task<bool> UpdateStatusAsync(int id, string status)
         {
@@ -27,6 +36,30 @@ namespace ServiceDashBoard1.Services
             return false;
         }
 
+
+        /// This async method searches for a complaint in the `ComplaintRegistration` table
+        ///     using either the Machine Serial Number **or** the Email ID provided by the user.
+        /// 
+        /// Use Case:
+        ///     Useful when the user or technician wants to quickly find a complaint 
+        ///     by entering either a machine's serial number or the customer's email.
+        /// 
+        ///  How it works:
+        ///     - If the `searchQuery` is empty or whitespace, the method returns `null`.
+        ///     - Otherwise, it checks the database for the **first** matching record 
+        ///       where either the `MachineSerialNo` or the `Email` matches the input exactly.
+        /// 
+        /// Limitations:
+        ///     - It does an **exact match**, so partial values won't return results.
+        ///     - It only returns the **first match found**. If there are multiple complaints 
+        ///       with the same serial number or email, only one will be shown.
+        /// 
+        ///Possible improvements (optional for future):
+        ///     - Add support for partial matches using `.Contains(...)`.
+        ///     - Allow searching by phone number or token number as well.
+        ///     - Return a list if multiple results are expected.
+
+
         public async Task<ComplaintRegistration> SearchComplaintAsync(string searchQuery)
         {
             if (string.IsNullOrWhiteSpace(searchQuery))
@@ -37,6 +70,33 @@ namespace ServiceDashBoard1.Services
         }
 
 
+        
+        ///  This method is used to fetch detailed complaint information based on the provided Complaint ID.
+        /// It does the following:
+        /// 
+        ///  First, it tries to fetch the corresponding `ServiceModel` and `ComplaintRegistration` records
+        ///    from the database. If either of them is missing, it returns null and logs the issue.
+        /// 
+        /// data is available:
+        ///     - It copies basic complaint details like token number, machine serial number, company info, 
+        ///       contact info, and description from `ComplaintRegistration` into the `ServiceModel`.
+        ///     - It also carries over image, status, and other fields that are part of the user complaint.
+        /// 
+        ///  For better user readability in the UI:
+        ///     - The method converts the comma-separated string of problem IDs (both main and sub) 
+        ///       into their respective names using Enum mappings.
+        ///     - `MainProblemText` is generated using the `MainProblem` enum.
+        ///     - `SubProblemText` is built by checking the ID against all known subproblem enums 
+        ///       like `MachineSubproblem`, `ChillerSubproblem`, `LaserSubproblem`, etc.
+        /// 
+        /// Why this is important:
+        ///    This method acts like a data adapter between raw database records and the view model 
+        ///    shown in the UI. It prepares the data in a way that’s friendly and meaningful to the end user.
+        /// 
+        /// Note:
+        ///    Be cautious when editing this method. If enums are changed or IDs shuffled, 
+        ///    this mapping logic might break or show incorrect labels.
+        
 
 
 

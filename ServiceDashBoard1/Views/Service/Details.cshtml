@@ -1,284 +1,4 @@
 ﻿
-@* @model ServiceDashBoard1.Models.ServiceModel *@
-
-@* <div class="container mt-4"> *@
-@*     <h2 class="text-center mb-4">Complaint Details</h2> *@
-
-@*     <div class="card shadow p-4"> *@
-@*         <table class="table table-bordered"> *@
-@*             <tbody> *@
-@*                 <tr><th>Token:</th><td>@Model.TokenNumber</td></tr> *@
-@*                 <tr><th>Machine:</th><td>@Model.MachineSerialNo</td></tr> *@
-@*                 <tr><th>Company:</th><td>@Model.CompanyName</td></tr> *@
-@*                 <tr><th>Email:</th><td>@Model.Email</td></tr> *@
-@*                 <tr><th>Phone:</th><td>@Model.PhoneNo</td></tr> *@
-@*                 <tr><th>Address:</th><td>@Model.Address</td></tr> *@
-@*                 <tr><th>Contact Person:</th><td>@Model.ContactPerson</td></tr> *@
-@*                 <tr><th>Description:</th><td>@Model.ComplaintDescription</td></tr> *@
-
-
-@*                 <tr> *@
-@*                     <th>Main Problem(s):</th> *@
-@*                     <td><input type="text" class="form-control" value="@Model.MainProblemText" readonly /></td> *@
-@*                 </tr> *@
-@*                 <tr> *@
-@*                     <th>Sub Problem(s):</th> *@
-@*                     <td><input type="text" class="form-control" value="@Model.SubProblemText" readonly /></td> *@
-@*                 </tr> *@
-
-@*                 <tr><th>Current Status:</th><td><span class="badge bg-success text-white fw-bold fs-5 text-uppercase">@Model.Status</span></td></tr> *@
-@*                 <tr> *@
-@*                     <th>Image:</th> *@
-@*                     <td class="text-center"> *@
-@*                         @if (!string.IsNullOrEmpty(Model.ImageBase64)) *@
-@*                         { *@
-@*                             <img src="data:image/png;base64,@Model.ImageBase64" alt="Complaint Image" class="img-thumbnail" style="max-width: 200px;" /> *@
-@*                         } *@
-@*                         else *@
-@*                         { *@
-@*                             <span class="text-muted">No Image Available</span> *@
-@*                         } *@
-@*                     </td> *@
-@*                 </tr> *@
-
-@*             </tbody> *@
-@*         </table> *@
-@*     </div> *@
-
-@*     <div class="mt-4"> *@
-@*         <h3 class="fw-bold text-dark">Remark</h3> *@
-@*         <form method="post" id="complaintForm"> *@
-@*             <input type="hidden" asp-for="ComplaintId" /> *@
-@*             <input type="hidden" id="selectedStatus" name="Status" value="@Model.Status" /> *@
-@*             <input type="hidden" id="dynamicAction" name="actionName" value="" /> *@
-
-@*             <div class="form-group"> *@
-@*                 <textarea asp-for="Remark" class="form-control fw-bold text-dark" rows="4" placeholder="Enter your remark here..." required>@Model.Remark</textarea> *@
-@*                 <span asp-validation-for="Remark" class="text-danger"></span> *@
-@*             </div> *@
-
-@*             @if (!string.IsNullOrWhiteSpace(Model.RemarkBy)) *@
-@*             { *@
-@*                 <div class="row"> *@
-@*                     <div class="col-md-6"> *@
-@*                         <div class="form-group"> *@
-@*                             <label><strong>Remark By</strong></label> *@
-@*                             <input type="text" class="form-control" value="@Model.RemarkBy" readonly /> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*             } *@
-
-
-
-@*             <div class="form-group mt-3" id="finalRemarkSection" style="display: none;"> *@
-@*                 <label for="FinalRemark" class="fw-bold text-dark h3">FinalRemark</label> *@
-@*                 <textarea asp-for="FinalRemark" class="form-control fw-bold text-dark" rows="4" placeholder="Enter final remark...">@Model.FinalRemark</textarea> *@
-@*                 <span asp-validation-for="FinalRemark" class="text-danger"></span> *@
-@*             </div> *@
-
-@*             @if (!string.IsNullOrWhiteSpace(Model.FinalRemarkBy)) *@
-@*             { *@
-@*                 <div class="row"> *@
-@*                     <div class="col-md-6"> *@
-@*                     <label><strong>Final Remark By</strong></label> *@
-@*                     <input type="text" class="form-control" value="@Model.FinalRemarkBy" readonly placeholder="Final remark by..." /> *@
-@*                 </div> *@
-@*                 </div> *@
-@*             } *@
-
-
-
-
-
-@*             <div class="text-center mt-3"> *@
-@*                 <div class="dropdown d-inline"> *@
-@*                     <button type="button" class="btn btn-outline-danger px-4 mx-5 dropdown-toggle" data-bs-toggle="dropdown" id="statusBtn"> *@
-@*                         Select Status *@
-@*                     </button> *@
-@*                     <ul class="dropdown-menu"> *@
-
-@*                         @if (Model.Status == "Viewed") *@
-@*                         { *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Pending')">Pending</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Hold')">Hold</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Completed')">Completed</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Cancelled')">Cancelled</a></li> *@
-@*                         } *@
-@*                         else if (Model.Status == "Pending") *@
-@*                         { *@
-
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Pending')">Pending</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Hold')">Hold</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Completed')">Completed</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Cancelled')">Cancelled</a></li> *@
-
-@*                         } *@
-@*                         else if (Model.Status == "Hold" || Model.Status == "On Hold") *@
-@*                         { *@
-
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Hold')">Hold</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Pending')">Pending</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Completed')">Completed</a></li> *@
-@*                             <li><a class="dropdown-item" href="#" onclick="changeStatus('Cancelled')">Cancelled</a></li> *@
-
-@*                         } *@
-
-@*                     </ul> *@
-@*                 </div> *@
-
-@*                 @* <button type="button" class="btn btn-outline-danger px-4 mx-5" onclick="markAsPending(@Model.ComplaintId)">Status</button> *@ 
-
-@*                 <button type="submit" class="btn btn-primary px-4 mx-5" onclick="return submitForm();"> Save Complaint</button> *@
-
-
-
-@*                 <a asp-controller="ComplaintRegistrations" asp-action="ServiceDashBoard1" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To ServiceDashboard</a> *@
-@*             </div> *@
-@*         </form> *@
-
-@*     </div> *@
-@* </div> *@
-@* <script> *@
-
-
-
-@*              function changeStatus(status) { *@
-@*         document.getElementById("statusBtn").innerText = status; // Update button text *@
-@*         document.getElementById("selectedStatus").value = status; // Store selected status *@
-
-@*          var remarkField = document.querySelector("textarea[name='Remark']"); *@
-@*     var finalRemarkSection = document.getElementById("finalRemarkSection"); *@
-
-
-@*      // ✅ Action change karo jo status select kiya uske hisaab se *@
-@*             if (status === "Pending") { *@
-@*                 document.getElementById("dynamicAction").value = "Pending"; *@
-@*                 } else if (status === "Hold")  { *@
-@*                 document.getElementById("dynamicAction").value = "Hold"; *@
-@*             } else if (status === "On Hold")  { *@
-@*                 document.getElementById("dynamicAction").value = "Hold"; *@
-@*             }else if (status === "Completed")  { *@
-@*                 document.getElementById("dynamicAction").value = "SaveRemark"; *@
-@*             }else if (status === "Cancelled")  { *@
-@*                 document.getElementById("dynamicAction").value = "Cancelled"; *@
-@*             } *@
-@*             else { *@
-@*               document.getElementById("dynamicAction").value = "Viewed"; *@
-
-@*             } *@
-
-
-@*             if (remarkField.value.trim() !== "" && status !== "Completed" && status !== "Cancelled"  && status !== "Hold"  && status !== "Pending" ) { *@
-@*         finalRemarkSection.style.display = "none"; *@
-@*     }  *@
-@*     } *@
-
-
-@*               function submitForm() { *@
-
-@*       var status = document.getElementById("selectedStatus").value.trim(); *@
-
-@*               if (!status || status === "Viewed" ) { *@
-@*         alert("Please select a status before submitting the form!"); *@
-@*         return false; // ❌ Form submit nahi hoga *@
-@*     } *@
-
-@*         if (confirm("Are you sure you want to submit the form?")) { *@
-@*             var action = document.getElementById("dynamicAction").value; *@
-@*         var currentStatus = document.getElementById("selectedStatus").value; // ✅ Status ko fetch karo *@
-
-@*              // ✅ Agar koi status select nahi kiya, toh default "currentStatus" rakhna *@
-@*         if (!action || action === "SaveRemark") { *@
-@*             action = currentStatus; *@
-@*         } *@
-@* document.getElementById("complaintForm").action = "/Service/" + action; *@
-
-
-
-@*             return true; // ✅ Form submit hoga *@
-@*         } *@
-@*         return false; // ❌ Form submit nahi hoga agar "Cancel" dabaya *@
-@*     } *@
-
-
-@*     document.addEventListener("DOMContentLoaded", function () { *@
-@*         var status = "@Model.Status".trim(); // Backend se status leke aayein *@
-@*         var statusBtn = document.getElementById("statusBtn"); *@
-@*         var statusInput = document.getElementById("selectedStatus"); *@
-@*          var remarkField = document.querySelector("textarea[name='Remark']"); *@
-@*              var finalRemarkField = document.querySelector("textarea[name='FinalRemark']"); *@
-@*              var finalRemarkSection = document.getElementById("finalRemarkSection"); *@
-
-@*         if (statusBtn) { *@
-
-@*             statusInput.value = status; // Ensure hidden input has the same value *@
-@*         } *@
-
-
-
-
-@*          if (finalRemarkField && finalRemarkField.value.trim() !== "") { *@
-@*         finalRemarkField.readOnly = true; *@
-@*             remarkField.readOnly = true; *@
-
-@*     } *@
-
-@*                if ( *@
-@*         remarkField.value.trim() !== "" && *@
-@*         (status === "Completed" || status === "Cancelled") && *@
-@*         finalRemarkField.value.trim() === "" *@
-@*     ) { *@
-@*         // ✅ Remark likha hua hai, Completed/Cancelled bhi hai, but FinalRemark empty hai → hide *@
-@*         finalRemarkSection.style.display = "none"; *@
-@*     } else if ( *@
-@*         remarkField.value.trim() !== "" && *@
-@*         finalRemarkField.value.trim() !== "" && *@
-@*         (status === "Completed" || status === "Cancelled") *@
-@*     ) { *@
-@*         // ✅ Remark aur FinalRemark dono likha hua hai aur Completed/Cancelled hai → show *@
-@*         finalRemarkSection.style.display = "block"; *@
-@*         finalRemarkField.readOnly = true; *@
-@*         } else if ( *@
-@*         status !== "Completed" && *@
-@*         status !== "Cancelled" && *@
-@*         remarkField.value.trim() !== "" *@
-@*     ) { *@
-@*         // ✅ Hold ya Pending par ho + Remark likha ho tabhi FinalRemark dikhana hai *@
-@*         finalRemarkSection.style.display = "block"; *@
-@*     } *@
-
-
-@*                  // ✅ Ye block fix kiya gaya hai: *@
-@*         if ( *@
-@*             finalRemarkField && remarkField && *@
-@*             finalRemarkField.value.trim() !== "" && *@
-@*             remarkField.value.trim() !== "" *@
-@*         ) { *@
-@*             document.getElementById("statusBtn").disabled = true; *@
-@*             document.querySelector("button[type='submit']").disabled = true; *@
-
-
-@*         } *@
-
-
-@*     // ye niche k button hide karne k liye horaha ha use  *@
-@*              if (status === "Completed" || status ==="Cancelled" || finalRemarkSection ==="") { *@
-@*         document.getElementById("statusBtn").disabled = true; // Status button disable *@
-@*         document.querySelector("textarea[name='Remark']").readOnly = true; // Remark field read-only *@
-@*         document.querySelector("button[type='submit']").disabled = true; // Save Complaint button disable *@
-@*         document.querySelectorAll(".dropdown-item").forEach(item => item.classList.add("disabled")); // Dropdown items disable *@
-@*     } *@
-
-@*         // ✅ Immediately set Remark field readonly after submit *@
-@*                 if (remarkField && remarkField.value.trim() !== "") { *@
-@*                     remarkField.readOnly = true; *@
-@*                 } *@
-
-@*     }); *@
-
-@* </script> *@
-@* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> *@
 
 @model ServiceDashBoard1.Models.ServiceModel
 
@@ -289,13 +9,34 @@
 
 }
 
+@{
+    var userRole1 = (ViewBag.Role as string)?.ToLower();
+}
+
+@if (userRole1 == "customer")
+{
+    <div class="alert alert-info align-items-center">
+        Welcome, Customer! You can only view your complaint details here.
+    </div>
+}
+
+
 <div class="container mt-4">
     <h2 class="text-center mb-4 text-warning bg-dark py-2 rounded shadow">
         <i class="fas fa-tools me-2"></i> Complaint Details
     </h2>
+    @if (isCoordinator || isFieldManager)
+    {
+        <div class="mb-3">
+            <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary px-4 fw-bold">
+                Back To Admin Dashboard
+            </a>
+        </div>
+    }
 
     <div class="card shadow p-4 d-flex flex-column" style="height: 65vh;">
         <div class="table-responsive flex-grow-1">
+
             <table class="table table-bordered align-middle h-100 mb-0">
                 <tbody class="h-100 d-flex flex-column justify-content-between">
                     <tr class="flex-fill d-flex">
@@ -362,7 +103,7 @@
                         </td>
                     </tr>
 
-                    @if (!isCoordinator && Model.Status == "Viewed")
+                    @if (!isCoordinator && Model.Status == "Viewed" && userRole1 != "customer")
                     {
                         <tr class="flex-fill d-flex">
                             <th class="w-25">Accepted</th>
@@ -412,11 +153,13 @@
 
             @if (!isCoordinator && !isFieldManager)
             {
-                <div class="text-center mt-3">
+                <div class="row justify-content-center text-center mt-3 g-2">
 
 
-                    @if (userRole != "coordinator" && userRole != "field operation manager")
+                    @if (userRole != "coordinator" && userRole != "field operation manager" && userRole1 != "customer")
                     {
+
+                        <div class="col-12 col-md-auto">
                         <div class="dropdown d-inline">
 
 
@@ -435,32 +178,48 @@
                                 }
                             </ul>
                         </div>
+                        </div>
                     }
                     @if (userRole == "field operation manager" )
                     {
-                        <a asp-controller="ComplaintRegistrations" asp-action="FieldEngineerDashBoard" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To Field Operation Manager Dashboard</a>
+                        <div class="col-12 col-md-auto">
 
+                        <a asp-controller="ComplaintRegistrations" asp-action="FieldEngineerDashBoard" class="btn btn-sm btn-outline-warning px-4 mx-3 col-12 col-md-auto mb-2">Back To Field Operation Manager Dashboard</a>
+                        </div>
                     }
                     else if (isCoordinator)
                     {
-                        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To Field Operation Manager Dashboard</a>
+                        <div class="col-12 col-md-auto">
+
+                        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-sm btn-outline-warning px-4 mx-3 col-12 col-md-auto mb-2">Back To Field Operation Manager Dashboard</a>
+                        </div>
 
                     }
-                    
-                    
+                    else if (userRole1== "customer")
+                    {
+                        <div class="col-12 col-md-auto">
+
+                            <a asp-controller="ComplaintRegistrations" asp-action="CustomerComplaintIndex" class="btn btn-sm btn-outline-warning px-4 mx-3 col-12 col-md-auto mb-2">Back To Dashboard</a>
+                        </div>
+
+                    }
+                   
                     else
                     {
-                        <button type="button" class="btn btn-primary px-4 mx-5" onclick="return submitForm()">Save Complaint</button>
+                        <div class="col-12 col-md-auto">
+<button type="button" class="btn btn-primary px-4 mx-5" onclick="return submitForm()">Save Complaint</button>
+</div>
+                        <div class="col-12 col-md-auto">
 
-                        <a asp-controller="ComplaintRegistrations" asp-action="ServiceDashBoard1" class="btn btn-sm btn-outline-warning px-4 mx-3">Back To ServiceDashboard</a>
-
+                        <a asp-controller="ComplaintRegistrations" asp-action="ServiceDashBoard1" class="btn btn-sm btn-outline-warning px-4 mx-3 col-12 col-md-auto mb-2">Back To ServiceDashboard</a>
+                        </div> 
                     }
                 </div>
 
 
 
                 <!-- Final Remark Modal -->
-                <div class="modal fade" id="finalRemarkModal" tabindex="-1" aria-labelledby="finalRemarkModalLabel" aria-hidden="true">
+                <div class="modal fade col-12 col-md-auto mb-2" id="finalRemarkModal" tabindex="-1" aria-labelledby="finalRemarkModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -479,7 +238,7 @@
                 </div>
 
                 <!-- Remark Modal -->
-                <div class="modal fade" id="remarkModal" tabindex="-1" aria-labelledby="remarkModalLabel" aria-hidden="true">
+                <div class="modal fade col-12 col-md-auto mb-2" id="remarkModal" tabindex="-1" aria-labelledby="remarkModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -499,14 +258,7 @@
             }
 
             <div>
-                @if (isCoordinator || isFieldManager)
-                {
-                    <div class="text-center mt-4">
-                        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary px-4 fw-bold">
-                            Back To AdminDashboard
-                        </a>
-                    </div>
-                }
+              
                 @if (Model.Status == "Completed" || Model.Status == "Cancelled")
                 {
                     <div class="text-center mt-3">

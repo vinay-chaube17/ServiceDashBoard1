@@ -8,6 +8,8 @@
     Context.Session.Remove("ShowPasswordChangePopup");
 }
 
+
+
 @if (showPopup == "true")
 {
     <div id="overlay" style="display:none;
@@ -39,13 +41,21 @@
             document.getElementById('overlay').style.display = 'none';
         }
 
-        setTimeout(function () {
+        window.onload = function () {
             var popup = document.getElementById("password-popup");
             var overlay = document.getElementById("overlay");
-            if (popup) popup.style.display = "none";
-            if (overlay) overlay.style.display = "none";
-        }, 60000);
+            if (popup) popup.style.display = "block";
+            if (overlay) overlay.style.display = "block";
+
+            // Optional auto-hide after 60s
+            setTimeout(function () {
+                if (popup) popup.style.display = "none";
+                if (overlay) overlay.style.display = "none";
+            }, 60000);
+        };
     </script>
+
+
 }
 
 
@@ -158,7 +168,7 @@
             let contactperson = (row.dataset.contactperson || "").toLowerCase();
 
             if (serialNo.includes(input) || contactperson.includes(input)) {
-                row.classList.remove("d-none"); // 👈 Yeh line add karo
+                row.classList.remove("d-none"); 
                 row.style.display = "";
                 found = true;
             } else {
@@ -175,9 +185,9 @@
             document.querySelectorAll(".searchable-row").forEach(row => {
                 let status = row.dataset.status;
     if (status === "cancelled" || status === "completed") {
-                   row.classList.add("d-none"); // 👈 Fir se chhupao
+                   row.classList.add("d-none"); 
                } else {
-                   row.classList.remove("d-none"); // 👈 Dikhane ke liye
+                   row.classList.remove("d-none"); 
                    row.style.display = "";
                }            });
 

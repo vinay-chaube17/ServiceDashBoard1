@@ -1,0 +1,875 @@
+﻿
+
+@model Tuple<ServiceDashBoard1.Models.CustomerRegistration, List<ServiceDashBoard1.Models.CustomerRegistration>>
+
+@{
+    ViewData["Title"] = "Employee Registration";
+}
+
+<div>
+    @Html.ActionLink("Back to Admin DashBoard", "Index", "ComplaintRegistrations", null, new { @class = "btn btn-primary m-3" })
+</div>
+
+
+<div class="container my-3">
+    <div class="row">
+        <!-- Registration Form -->
+        <div class="col-md-6 col-sm-12">
+            <div class="card mt-3">
+                <div class="card-header text-center">
+                    <h3>Customer Registration</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="CustomerRegistration" asp-controller="Users">
+                        <div class="row">
+                            <!-- Machine Serial No -->
+                            <div class="col-md-9 mb-3">
+                                <label for="MachineSerialNo" class="form-label ">Machine Serial No</label>
+                                <input type="text" class="form-control" id="MachineSerialNo" name="MachineSerialNo"
+                                       value="@Model.Item1?.MachineSerialNo" placeholder="Please Enter Machine Serial number" />
+                                <span asp-validation-for="Item1.MachineSerialNo" class="text-danger"></span>
+
+                            </div>
+
+                            <!-- Search Button aligned next to Machine Serial No -->
+                            <div class="col-md-3 mb-3 d-flex align-items-end">
+                                <button id="searchBtn" type="button" class="btn btn-primary w-100">Search</button>
+                            </div>
+                            <span id="searchError" style="display:none;"></span>
+
+                            </div>
+                        <div class="mb-3">
+                            <label for="CompanyName" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="CompanyName" name="CompanyName" value="@Model.Item1?.CompanyName" readonly/>
+                            <span asp-validation-for="Item1.CompanyName" class="text-danger"></span>
+                        </div>
+                           
+
+                        <div class="mb-3">
+                            <label for="CompanyAddress" class="form-label">Company Address</label> 
+                            <input type="text" class="form-control" id="CompanyAddress" name="CompanyAddress" value="@Model.Item1?.CompanyAddress" readonly/>
+                            <span asp-validation-for="Item1.CompanyAddress" class="text-danger"></span>
+                        </div>
+
+                   
+
+                        <div class="mb-3">
+                      <label asp-for="Item1.ContactPersonName" class="form-label">Contact PersonName</label>
+                            <input asp-for="Item1.ContactPersonName" class="form-control" id="ContactPersonName" name="ContactPersonName" value="@Model.Item1?.ContactPersonName" placeholder="Name Should be Like This : vinay chaubey"/>
+                     <span asp-validation-for="Item1.ContactPersonName" class="text-danger"></span>
+                       </div> 
+
+                        <div class="mb-3">
+                            <label for="Email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="Email" name="Email" value="@Model.Item1?.Email"/>
+                            <span asp-validation-for="Item1.Email" class="text-danger"></span>
+                            <span id="EmailError" class="text-danger"></span> <!-- Added for JS -->
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="PhoneNo" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="PhoneNo" name="PhoneNo" value="@Model.Item1?.PhoneNo" />
+                            <span asp-validation-for="Item1.PhoneNo" class="text-danger"></span>
+                            <span id="PhoneNoError" class="text-danger"></span> <!-- Added for JS -->
+
+                        </div>
+
+                        <!-- Edit Button -->
+                        <div class="mb-3 text-end">
+                            <button type="button" class="btn btn-warning" id="editButton" style="display: none;">
+                                Edit
+                            </button>
+                        </div>
+
+                     
+
+                        <div class="mb-3">
+                            <label for="Username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="Username" name="Username" value="@Model.Item1?.Username" readonly/>
+                            <span asp-validation-for="Item1.Username" class="text-danger"></span>
+                            <span id="UserName" class="text-danger"></span> <!-- Added for JS -->
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Password" class="form-label">Password</label>
+                            <input asp-for ="Item1.Password"  type="password" class="form-control" id="Password" name="Password"  readonly/>
+                            <span asp-validation-for="Item1.Password" class="text-danger"></span>
+                            <span id="Passworderror" class="text-danger"></span> <!-- we added this line to show error for password and this feature we are added by using javascript with id -->
+                        </div>
+                       
+
+                        <!-- Search error message -->
+                        <div class="text-center my-2">
+                            <span id="searchError" class="text-danger d-block" style="display: none;"></span>
+                        </div>
+                    
+
+                            <div class="mb-3">
+                                <label asp-for="Item1.MachineType" class="form-label">Machine Type</label>
+                                <select asp-for="Item1.MachineType" class="form-control" id="MachineType" name="MachineType">
+                                    <option value="">-- Please select --</option>
+                                    <option>Ecat Sheet Cutting</option>
+                                    <option>Beckhoff Sheet Cutting</option>
+                                    <option>Fanuc Sheet Cutting</option>
+                                    <option>Chuck 3 Tube Cutting</option>
+                                    <option>Chuck 2 Tube Cutting</option>
+                                    <option>Sheet Tube Cutting Machine</option>
+                                    <option>Welding Machine</option>
+                                    <option>Marking Machine</option>
+                                    <option>Laser Cutting</option>
+                                    <option>Engraver Machine</option>
+                                    <option>Router Machine</option>
+                                    <option>Robot Cutting Welding</option>
+                                    <option>SPM</option>
+                                    <option>Other</option>
+                                </select>
+                                <span asp-validation-for="Item1.MachineType" class="text-danger"></span>
+                            </div>
+
+
+                          
+                       
+
+                        <div class="mb-3">
+                            <label for="isActive" class="form-label">Status</label>
+                            <select class="form-control" id="isActive" name="isActive" value="@Model.Item1?.isActive">
+                                <option value="">Select</option>
+                                <option value="Active">Active</option>
+                                <option value="De-Active">De-Active</option>
+                            </select>
+                            <span asp-validation-for="Item1.isActive" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Employees Table -->
+        <div class="col-md-6 col-sm-12">
+            <div class="card mt-3">
+                <div class="card-header text-center">
+                    <h3>Existing Customers</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-bordered table-striped m-0">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th>Company Name</th>
+                                    <th>Company Address</th>
+                                    <th>Contact Person</th>
+                                    <th>Phone No</th>
+                                    <th>Email</th>
+                                    <th>Username</th>
+                                    <th>Machine Serial No</th> 
+                                     <th>Machine Type</th>
+                                    <th>Status</th>
+                                    <th>Created Date</th>
+                                    <th>Modified Date</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var emp in Model.Item2)
+                                {
+                                    <tr>
+                                        <td>@emp.CompanyName</td>
+                                        <td>@emp.CompanyAddress</td>
+                                       <td>@emp.ContactPersonName</td>
+                                        <td>@emp.PhoneNo</td>
+                                        <td>@emp.Email</td>
+                                        <td>@emp.Username</td>
+                                          <td>@emp.MachineSerialNo</td>
+                                        <td>@emp.MachineType</td>
+                                        <td>@emp.isActive</td>
+                                        <td>@(emp.CreatedDate?.ToString("dd-MM-yyyy") ?? "")</td>
+                                        <td>@(emp.ModifiedDate?.ToString("dd-MM-yyyy") ?? "")</td>
+
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 text-center px-3">
+                <button id="toggleStatusBtn" class="btn btn-secondary w-50 mx-auto">
+                    Active/De-Active Existing Users
+                </button>
+                <div id="statusSection" style="display:none;" class="mt-2 mx-auto">
+                    <!-- Username input -->
+                    <input type="text"
+                           id="usernameInput"
+                           class="form-control mx-auto mb-2"
+                           style="max-width: 300px; width: 90%;"
+                           placeholder="Enter username" />
+
+                    <!-- Status display & edit -->
+                    <select id="statusSelect" class="form-control mx-auto mb-2" style="max-width: 300px; width: 90%;">
+                        <option value="">-- Select Status --</option>
+                        <option value="Active">Active</option>
+                        <option value="DeActive">DeActive</option>
+                    </select>
+
+                    <!-- Save button -->
+                    <button id="saveStatusBtn" class="btn btn-primary w-50 mx-auto">
+                        Save
+                    </button>
+
+                    <div id="message" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+ </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+
+
+        $(document).ready(function () {
+
+    //           function generateUsername() {
+    //     const company = $("#CompanyName").val().trim().toLowerCase().replace(/\s+/g, '');
+    //     const contact = $("#ContactPersonName").val().trim().toLowerCase();
+
+    //         if (!company || !contact) {
+    //         $("#Username").val(""); // Clear if contact person is missing
+    //         return;
+    //     }
+
+    //     const initials = contact.split(' ').map(w => w[0]).join('').substring(0, 2);
+    //     const companyPart = company.substring(0, 3);
+    //     const randomNum = Math.floor(100 + Math.random() * 900); // Random 3-digit
+
+    //     const username = (companyPart + initials + randomNum).substring(0, 8);
+
+    //     $.post("/Users/CheckExistingCustomer", { field: "Username", value: username }, function (data) {
+    //         if (data.exists) {
+    //             generateUsername(); // Try again if not unique
+    //         } else {
+    //             $("#Username").val(username);
+    //         }
+    //     });
+    // }
+
+
+    function generateUsername() {
+    const company = $("#CompanyName").val().trim().toLowerCase().replace(/\s+/g, '');
+    const contact = $("#ContactPersonName").val().trim().toLowerCase();
+    const email = $("#Email").val().trim().toLowerCase();
+    const phone = $("#PhoneNo").val().trim();
+
+    if (!company || !contact || !email || !phone) {
+        $("#Username").val(""); // Clear if any field missing
+        return;
+    }
+
+    // Check if same user exists already
+    $.post("/Users/CheckExistingCustomer", {
+        field: "UsernameAutoGenerate",
+        CompanyName: company,
+        ContactPersonName: contact,
+        Email: email,
+        PhoneNo: phone
+    }, function (data) {
+        if (data.exists) {
+            // ✔️ Same user found — use same username
+            $("#Username").val(data.username);
+        } else {
+            // ❌ New user — generate unique username
+            const initials = contact.split(' ').map(w => w[0]).join('').substring(0, 2);
+            const companyPart = company.substring(0, 3);
+            const randomNum = Math.floor(100 + Math.random() * 900);
+            const username = (companyPart + initials + randomNum).substring(0, 8);
+
+            // Check uniqueness
+            $.post("/Users/CheckExistingCustomer", {
+                field: "Username",
+                value: username
+            }, function (check) {
+                if (check.exists) {
+                    generateUsername(); // Retry
+                } else {
+                    $("#Username").val(username);
+                }
+            });
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+//     function generatePassword() {
+//     const company = $("#CompanyName").val().trim().toLowerCase().replace(/\s+/g, '');
+//     const contact = $("#ContactPersonName").val().trim().toLowerCase();
+//     const email = $("#Email").val().trim().toUpperCase();
+
+
+
+//        if (!company || !contact || !email) {
+//             $("#Password").val(""); // Clear if contact person is missing
+//             return;
+//         }
+
+
+
+//     const initials = contact.split(' ').map(w => w[0]).join('').substring(0, 2);
+    
+//     const companyPart = company.substring(0, 3);
+
+//       const emailPart = email.substring(0, 2);
+
+//     const upper = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+//     const lower = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+//     const number = Math.floor(10 + Math.random() * 90); // Two-digit
+//     const specialChars = "@@$!%*?&";
+//     const special = specialChars[Math.floor(Math.random() * specialChars.length)];
+
+//     const base = (companyPart + emailPart +initials).substring(0, 4);
+//     const password = base + upper + lower + number + special;
+
+
+//     // 🔁 Check with new separate action
+//     $.post("/Users/IsPasswordUnique", { password: password }, function (data) {
+//         if (data.exists) {
+//             generatePassword(); // Retry if not unique
+//         } else {
+           
+//             $("#Password").val(password);
+            
+//         }
+//     });
+// }
+
+
+function generatePassword() {
+    const company = $("#CompanyName").val().trim().toLowerCase().replace(/\s+/g, '');
+    const contact = $("#ContactPersonName").val().trim();
+    const email = $("#Email").val().trim();
+    const phone = $("#PhoneNo").val().trim();
+    const machineSerialNo = $("#MachineSerialNo").val().trim();
+
+    if (!company || !contact || !email || !phone || !machineSerialNo) {
+        $("#Password").val("");
+        return;
+    }
+
+    const initials = contact.toLowerCase().split(' ').map(w => w[0]).join('').substring(0, 2);
+    const companyPart = company.substring(0, 3);
+    const emailPart = email.substring(0, 2).toUpperCase();
+
+    const upper = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    const lower = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+    const number = Math.floor(10 + Math.random() * 90);
+    const specialChars = "@@$!%*?&";
+    const special = specialChars[Math.floor(Math.random() * specialChars.length)];
+
+    const base = (companyPart + emailPart + initials).substring(0, 4);
+    const password = base + upper + lower + number + special;
+
+    $.post("/Users/IsPasswordUnique", {
+        password: password,
+        email: email,
+        contactPersonName: contact,
+        phoneNo: phone,
+        machineSerialNo: machineSerialNo
+    }, function (data) {
+        if (data.exists && data.password) {
+            // ✅ Reuse password from DB
+            $("#Password").val(data.password);
+        } else if (!data.exists) {
+            // ✅ New password is unique
+            $("#Password").val(password);
+        } else {
+            // ❌ Password exists, retry
+            generatePassword();
+        }
+    });
+}
+
+
+        let usernameTimeout, passwordTimeout;
+
+    $("#CompanyName, #ContactPersonName").on("input", function () {
+
+        clearTimeout(usernameTimeout);                 // cancel previous timer
+
+        const company = $("#CompanyName").val().trim();
+        const contact = $("#ContactPersonName").val().trim();
+
+        if (company === "" || contact === "") {
+            // any empty ⇒ clear immediately, don’t queue timer
+            $("#Username").val("");
+            return;
+        }
+
+        // both have text ⇒ (re)start 5‑s timer
+        usernameTimeout = setTimeout(generateUsername, 5000);
+    });
+
+    $("#CompanyName, #ContactPersonName, #Email").on("input", function () {
+
+        clearTimeout(passwordTimeout);
+
+        const company  = $("#CompanyName").val().trim();
+        const contact  = $("#ContactPersonName").val().trim();
+            const email = $("#Email").val().trim();
+
+
+        if (company === "" || contact === "" || email === "") {
+            $("#Password").val("");        // clear immediately
+            return;
+        }
+               
+
+
+        passwordTimeout = setTimeout(generatePassword, 3000);
+    });
+
+            $("#Email, #PhoneNo,#CompanyAddress,#Password,#CustomerName,#Username").on("input", function () {
+                var field = $(this).attr("id");
+                $("span[data-valmsg-for='" + field + "']").text("");
+                $("#" + field + "Error").text("").hide();
+            });
+
+            $("#PhoneNo").on("input", function () {
+                var value = $(this).val().trim();
+                var errorSpan = $("#PhoneNoError");
+                value = value.replace(/^0+/, '');
+                $(this).val(value);
+
+                if (!/^\d{10}$/.test(value)) {
+                    errorSpan.text("Phone number must be exactly 10 digits").css("color", "red").show();
+                } else {
+                    errorSpan.text("").hide();
+                }
+            });
+
+                 $("#Password").on("input", function () {
+        var value = $(this).val().trim();
+        var errorSpan = $("#Passworderror");
+
+        // Regex for your password rules:
+        var passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@@$!%*?&]).{8,}$/;
+
+        if (!passwordRegex.test(value)) {
+            errorSpan
+                .html("Password must be at least 8 characters long, contain:<br>- 1 uppercase letter<br>- 1 lowercase letter<br>- 1 number<br>- 1 special character (@@ $ ! % * ? &)")
+                .css("color", "red")
+                .show();
+        } else {
+            errorSpan.text("").hide();
+        }
+    });
+
+          $("#Email").on("input", function () {
+                    var value = $(this).val().trim();
+                    var errorSpan = $("#EmailError");
+                    var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+                    if (!emailPattern.test(value)) {
+                        errorSpan.text("Invalid email format").css("color", "red").show();
+                    } else {
+                        errorSpan.text("").hide();
+                    }
+                });
+
+
+
+            $("#Email, #PhoneNo,#Username").on("blur", function () {
+                var field = $(this).attr("id");
+                var value = $(this).val().trim();
+                var errorSpan = $("#" + field + "Error");
+
+                if (value === "") {
+                    errorSpan.text("").hide();
+                    return;
+                }
+
+
+
+                $.post("/Users/CheckExistingCustomer", { field: field, value: value }, function (data) {
+                    if (data.exists) {
+                        errorSpan.text(field + " already exists! Please choose another.").css("color", "red").show();
+                    } else {
+                        errorSpan.text("").hide();
+                    }
+                }).fail(function () {
+                    errorSpan.text("Error checking " + field).css("color", "red").show();
+                });
+            });
+        });
+
+
+
+
+
+
+                 $(document).ready(function () {
+        $("#toggleStatusBtn").click(function () {
+            $("#statusSection").toggle();
+            $("#usernameInput").val("");
+            $("#statusSelect").val("");
+            $("#message").text("");
+            $("#usernameInput").focus();
+        });
+
+        let inputTimeout; // declare globally
+        // On username input blur (or you can change event to 'change' or a button)
+        $("#usernameInput").on('input', function () {
+             clearTimeout(inputTimeout); // reset timer on every keystroke
+             
+             const self = this; // ✅ save the correct reference
+             inputTimeout = setTimeout(function () {
+
+            var username = $(self).val().trim();
+            console.log(username);
+            if(username){
+                // Call server to get status for username
+                $.ajax(
+                    {
+                    url: '@Url.Action("GetUserStatusCustomers", "Users")', // Update controller/action as needed
+                    type: 'GET',
+                    data: { username: username },
+
+                    success: function(response) {
+                        console.log(response.status);
+                        if(response.status){
+                          console.log(username);
+                          console.log(response.status);
+
+                            $("#statusSelect").val(response.status);
+                            $("#message").text("");
+
+                        } else {
+                            $("#statusSelect").val("");
+                            $("#message").text("User not found or error fetching status").css({
+             "color": "white",
+             "font-weight": "bold",
+             "background-color": "Red", // or dark background for contrast
+             "padding": "8px",
+             "border-radius": "5px"
+         });
+          resetStatusForm();
+                        }
+                    },
+                    error: function() {
+                        $("#message").text("Error fetching status").css({
+             "color": "white",
+             "font-weight": "bold",
+             "background-color": "Red", // or dark background for contrast
+             "padding": "8px",
+             "border-radius": "5px"
+         });
+          resetStatusForm();
+                    }
+                });
+            } else {
+                $("#statusSelect").val("");
+                $("#message").text("");
+            }
+    }, 2000); // 2 seconds delay
+
+
+        });
+
+        // Save button click
+        $("#saveStatusBtn").click(function () {
+            var username = $("#usernameInput").val().trim();
+            var status = $("#statusSelect").val();
+
+            if(!username){
+                alert("Please enter username");
+                return;
+            }
+            if(!status){
+                alert("Please select status");
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateUserStatusCustomers", "Users")', // Update controller/action as needed
+                type: 'POST',
+                data: { username: username, status: status },
+                success: function(response) {
+                    if(response.status || response.username)
+                    {
+                       $("#message").text("Status updated successfully")
+         .css({
+             "color": "white",
+             "font-weight": "bold",
+             "background-color": "green", // or dark background for contrast
+             "padding": "8px",
+             "border-radius": "5px"
+         });
+
+     $("table tbody tr").each(function () {
+        var rowUsername = $(this).find("td:nth-child(6)").text().trim(); // Username column
+        if (rowUsername.toLowerCase() === username.toLowerCase()) {
+            $(this).find("td:nth-child(9)").text(status); // isActive column
+        }
+    });
+
+
+         resetStatusForm();
+
+                    } else {
+                        $("#message").text("Failed to update status: " + response.message) .css({
+             "color": "white",
+             "font-weight": "bold",
+             "background-color": "Red", // or dark background for contrast
+             "padding": "8px",
+             "border-radius": "5px"
+         });
+
+         resetStatusForm();
+                     }
+                },
+                error: function() {
+                    $("#message").text("Error updating status").css({
+             "color": "white",
+             "font-weight": "bold",
+             "background-color": "Red", // or dark background for contrast
+             "padding": "8px",
+             "border-radius": "5px"
+         });
+
+         resetStatusForm();
+                }
+            });
+        });
+
+                function resetStatusForm() {
+        setTimeout(function () {
+            $("#usernameInput").val("").focus();
+            $("#statusSelect").val("");
+            $("#message").fadeOut(300, function () {
+                $(this).text("").removeAttr("style").show();
+            });
+        },5000); // 5 seconds wait so user can read the message
+    }
+
+
+
+
+        // function fetchMachineDetails() {
+        //                        const serial = $("#MachineSerialNo").val().trim();
+
+        //                     // ✅ Hide previous error message at the start
+        //            $("#searchError").text("").hide();
+
+        //                if (serial === "") {
+        //                    $("#searchError").text("Please enter a Machine Serial No.").show();
+        //                    return;
+        //                }
+
+
+                       
+        //                $.ajax(
+        //                    {
+                           
+        //                   url:'/ComplaintRegistrations/GetDetailsBySerial',
+        //                    type: 'GET',
+        //                    data: {serialNo: serial},
+        //                    success: function (data) {
+        //                        $("#searchError").hide();
+
+        //                         $("input[name='MachineSerialNo']").val(serial);
+        //                        $("input[name='CompanyName']").val(data.companyName);
+        //                        $("input[name='Email']").val(data.email);
+        //                        $("input[name='PhoneNo']").val(data.phoneNo);
+        //                        $("input[name='CompanyAddress']").val(data.address);
+        //                        $("input[name='ContactPersonName']").val(data.contactPerson);
+        //                        $("#MachineType").val(data.machinetype);
+        //                        console.log(data.machinetype);
+
+        //                        // Check on page load
+        //                        toggleEditability();
+
+        //                         // Show error message only if already registered
+        //                       if (data.alreadyRegistered) {
+        //                        $("#searchError")
+        //                         .text("This Machine Serial No. is already registered.")
+        //                         .css({ "color": "red", "font-weight": "bold" })
+        //                         .show();
+        //                     } else {
+        //                     $("#searchError").hide(); // no error
+        //                         }
+        //                    },
+        //                    error: function (xhr) {
+        //                        let msg = xhr.status === 404 ? "Machine not found!" : "Please check your machine serial no.!";
+
+        //                             // Show pop-up alert
+        //                         alert(msg);
+        //                        // $("#searchError").text(msg).show(); ye msg show karaha tha code
+
+        //                        // Clear fields if not found
+        //                        $("input[name='MachineSerialNo']").val("");
+        //                        $("input[name='CompanyName']").val("");
+        //                        $("input[name='Email']").val("");
+        //                        $("input[name='PhoneNo']").val("");
+        //                        $("input[name='CompanyAddress']").val("");
+        //                        $("input[name='ContactPerson']").val("");
+        //                        $("input[name='MachineType']").val(data.machinetype);
+
+                                 
+
+        //                          // ✅ Clear the search bar
+        //                $("#MachineSerialNo").val("");
+        //                    }
+        //                });
+        //            }
+
+
+
+
+                 function fetchMachineDetails() {
+                           const MachineserialName = $("#MachineSerialNo").val().trim();
+
+                $("#searchError").text("").hide();
+
+                       if (MachineserialName === "") {
+                    $("#searchError").text("Please enter a company name").show();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/api/sap/get-by-company',
+                    type: 'GET',
+                                  data: { MachineserialName: MachineserialName },
+                    success: function (data) {
+                        $("#searchError").hide();
+                       
+                        console.log(" yaha se data araha hai vinay 1" + data.companyname );
+
+                          
+
+
+
+                           $("input[name='MachineSerialNo']").val(data.machineserialno);
+                                $("input[name='CompanyName']").val(data.companyname);
+                                $("input[name='PhoneNo']").val(data.phoneNo);  // ✅ correct key
+                                $("input[name='Email']").val(data.email);     // ✅ correct casing
+                                $("input[name='CompanyAddress']").val(data.address);
+                            $("input[name='ContactPersonName']").val(data.contactPerson);
+
+                                
+                             
+                                  if (data.alreadyRegistered) {
+
+
+
+              $("input[name='MachineSerialNo']").val(MachineserialName);
+    $("input[name='CompanyName']").val(data.companyname);
+        $("input[name='Email']").val(data.email);
+    $("input[name='PhoneNo']").val(data.phoneNo);
+    $("input[name='CompanyAddress']").val(data.address);
+    $("input[name='ContactPersonName']").val(data.contactPerson);
+    $("#MachineType").val(data.machineType);
+
+        toggleEditability();
+        // jab already register ho tab 
+
+            $("#searchError")
+                .text("This Machine Serial No. is already registered.")
+                .css({ "color": "red", "font-weight": "bold" })
+                .show();
+
+            
+        } else {
+            $("#searchError").hide();
+
+           
+        }
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.status === 404 ? "Company not found!" : "Something went wrong!";
+                        alert(msg);
+
+                        $("input[name='MachineSerialNo']").val("");
+                        $("input[name='CompanyName']").val("");
+                        $("input[name='Email']").val("");
+                        $("input[name='PhoneNo']").val("");
+                        $("input[name='Address']").val("");
+                        $("input[name='ContactPerson']").val("");
+                        $("#CompanyName").val("");
+                    }
+                });
+            }
+
+                       $("#editButton").click(function () {
+        $("#ContactPersonName, #Email, #PhoneNo").prop("readonly", false);
+    });
+
+           // 🔹 Button Click
+           $("#searchBtn").click(function () {
+
+               fetchMachineDetails();
+           });
+
+                 
+
+           // 🔹 Enter Key Press
+           $("#MachineSerialNo").keypress(function (e) {
+               if (e.which === 16) {
+                   e.preventDefault(); // prevent form submission
+                   fetchMachineDetails();
+               }
+           });
+
+               
+
+
+            
+        function toggleEditability() {
+                        console.log ("2");
+
+            const contact = $("#ContactPersonName").val().trim();
+            const email = $("#Email").val().trim();
+            const phone = $("#PhoneNo").val().trim();
+
+            if (contact === "" && email === "" && phone === "") {
+
+                // Enable fields
+                $("#ContactPersonName").prop("readonly", false);
+                $("#Email").prop("readonly", false);
+                $("#PhoneNo").prop("readonly", false);
+                 $("#UserName").val("");
+
+                // Show Edit button
+                $("#editButton").hide();
+            } else {
+                // Keep fields readonly
+                console.log ("4");
+
+                $("#ContactPersonName").prop("readonly", true);
+                $("#Email").prop("readonly", true);
+                $("#PhoneNo").prop("readonly", true);
+
+                // Hide Edit button
+                $("#editButton").show();
+            }
+        }
+
+     });
+</script>
+
+
+
+
+

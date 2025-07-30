@@ -11,6 +11,14 @@ using ServiceDashBoard1.Models;
 
 namespace ServiceDashBoard1.Data
 {
+
+
+    // ViewModel for ComplaintRegistration:
+    // This ViewModel is used to pass data between the Controller and View.
+    // It includes properties from the ComplaintRegistration entity and adds UI-specific fields.
+    // This helps separate presentation logic from database models.
+
+
     public class ComplaintRegistrationViewModel
     {
          public int Id { get; set; }

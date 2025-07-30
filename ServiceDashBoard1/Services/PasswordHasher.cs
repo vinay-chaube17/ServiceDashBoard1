@@ -4,8 +4,13 @@ using System.Text;
 
 namespace ServiceDashBoard1.Services
 {
-    
-        public static class PasswordHasher
+    // This class handles password hashing and verification using SHA256.
+    // HashPassword() converts plain text password into a hashed format.
+    // VerifyPassword() checks if entered password matches the stored hashed password.
+    // SHA256 is one-way hashing, so original password can't be reversed.
+    // Note: SHA256 is okay for basic use, but in real apps use stronger methods like BCrypt.
+
+    public static class PasswordHasher
         {
             // Hash password using SHA256
             public static string HashPassword(string password)

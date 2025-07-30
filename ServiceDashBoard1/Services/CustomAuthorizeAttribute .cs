@@ -3,6 +3,11 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace ServiceDashBoard1.Services
 {
+
+    // Custom action filter to check if user session exists.
+    // If no session is found (i.e., user not logged in), it redirects to the Login page.
+    // Otherwise, it allows the action to execute normally.
+
     public class CustomAuthorizeAttribute : ActionFilterAttribute
     {
 

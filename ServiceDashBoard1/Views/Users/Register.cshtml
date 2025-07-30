@@ -1,206 +1,4 @@
-﻿@* 
-@model Tuple<ServiceDashBoard1.Models.User, List<ServiceDashBoard1.Models.User>>
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    
-@section PageStyles {
-    <style>
-        body {
-            background-image: url('/images/laser-cutting-of-metal-sheets.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            min-height: 100vh;
-        }
-    </style>
-}
-</head>
-<body>
-    <div >
-        @Html.ActionLink("Back to AdminDashBoard", "Index", "ComplaintRegistrations", null, new { @class = "btn btn-primary" })
-
-    </div>
-    <div class="container my-3">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card mt-5">
-                    <div class="card-header text-center">
-                        <h3>Register</h3>
-                    </div>
-                    <div class="card-body">
-                        <form method="post">
-
-                            <div class="mb-3">
-                                <label for="Name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="Name" name="Name" value="@Model.Item1?.Name" />
-                                <span asp-validation-for="Item1.Name" class="text-danger"></span>
-
-                            </div>
-                            <div class="mb-3">
-                                <label for="EmailId" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="EmailId" name="EmailId" value="@Model.Item1?.EmailId" />
-                                <span asp-validation-for="Item1.EmailId" class="text-danger"></span> <!-- ✅ Model Validation -->
-                                <span id="EmailIdError" class="text-danger" style="display:none;"></span> <!-- ✅ AJAX Error -->
-                            </div>
-
-
-                            <div class="mb-3">
-                                <label for="PhoneNo" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" id="PhoneNo" name="PhoneNo" value="@Model.Item1?.PhoneNo" />
-                                <span asp-validation-for="Item1.PhoneNo" class="text-danger"></span> <!-- ✅ Model Validation -->
-
-                                <span id="PhoneNoError" class="text-danger" style="display:none;"></span> <!-- ✅ AJAX Error -->
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="Address" class="form-label">Address</label>
-                                <input type="text" class="form-control" id="Address" name="Address" value="@Model.Item1?.Address" />
-
-                                <span asp-validation-for="Item1.Address" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="Username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="Username" name="Username" value="@Model.Item1?.Username" />
-                                <span asp-validation-for="Item1.Username" class="text-danger"></span> <!-- ✅ Model Validation -->
-                                <span id="UsernameError" class="text-danger" style="display:none;"></span> <!-- ✅ AJAX Error -->
-                            </div>
-
-
-                            <div class="mb-3">
-                                <label for="Password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="Password" name="Password" />
-                                <span asp-validation-for="Item1.Password" class="text-danger"></span>
-
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="Role" class="form-label">AssignTo</label>
-                                <select class="form-control" id="Role" name="Role">
-                                    <option value="Coordinator">Coordinator</option>
-                                    <option value="Sparepart">Sparepart</option>
-                                    <option value="Service Engineer">Service Engineer</option>
-                                    <option value="Field Engineer">Field Engineer</option>
-                                    <option value="Field Operation Manager">Field Operation Manager</option>
-
-                                </select>
-                            </div>
-
-
-
-                            <button type="submit" class="btn btn-primary w-100">Register</button>
-
-                            
-                        </form>
-
-                        <hr />
-                        <h3 class="text-center">Registered Users</h3>
-                        <table class="table table-bordered table-striped mt-3">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Role</th>
-                                    <th>Name</th>
-                                    <th>Username</th>
-                                   
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var user in Model.Item2)
-                                {
-                                    <tr>
-                                        <td>@user.Role</td>
-                                        <td>@user.Name</td>
-                                        <td>@user.Username</td>
-                                        
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
-<script>
-
-  
-
-    $(document).ready(function () {
-        $("#EmailId, #PhoneNo,#Address,#Password,#Name,#Username").on("input", function () {
-            var field = $(this).attr("id");
-
-            // **Model Validation Error ko hide karna**
-            $("span[data-valmsg-for='" + field + "']").text(""); // ✅ Model error hide
-
-            // **AJAX Error ko bhi hatana agar user field change kare**
-            $("#" + field + "Error").text("").hide();
-        });
-
-
-          
-
-
-        // ✅ Phone Number Ke Liye Real-Time Validation Add Karo
-            $("#PhoneNo").on("input", function () {
-        var value = $(this).val().trim();
-        var errorSpan = $("#PhoneNoError");
-
-        // ✅ Leading 0 Remove Karo
-        value = value.replace(/^0+/, '');
-        $(this).val(value); // ✅ Input Field Update
-
-        // ✅ Real-Time 10-Digit Check
-        if (!/^\d{10}$/.test(value)) {
-            errorSpan.text("Phone number must be exactly 10 digits").css("color", "red").show();
-        } else {
-            errorSpan.text("").hide();
-        }
-    });
-
-
-        $("#EmailId, #PhoneNo, #Username").on("blur", function () {
-            var field = $(this).attr("id");
-            var value = $(this).val().trim();
-            var errorSpan = $("#" + field + "Error"); // ✅ AJAX Error Span
-
-            // Agar field empty hai, toh AJAX validation mat karo (sirf Model validation chale)
-            if (value === "") {
-                errorSpan.text("").hide();
-                return;
-            }
-
-            // AJAX Call to Check Existing User
-            $.post("/Users/CheckExistingUser", { field: field, value: value }, function (data) {
-                if (data.exists) {
-                    errorSpan.text(field + " already exists! Please choose another.").css("color", "red").show();
-                } else {
-                    errorSpan.text("").hide();
-                }
-            }).fail(function () {
-                errorSpan.text("Error checking " + field).css("color", "red").show();
-            });
-        });
-    });
-</script>
-
-
- *@
+﻿
 
 
             @model Tuple<ServiceDashBoard1.Models.User, List<ServiceDashBoard1.Models.User>>
@@ -224,7 +22,7 @@
 </head>
 <body>
     <div>
-        @Html.ActionLink("Back to AdminDashBoard", "Index", "ComplaintRegistrations", null, new { @class = "btn btn-primary m-3" })
+        @Html.ActionLink("Back to Admin DashBoard", "Index", "ComplaintRegistrations", null, new { @class = "btn btn-primary m-3" })
     </div>
 
     <div class="container my-3">
@@ -243,12 +41,20 @@
                                 <span asp-validation-for="Item1.Name" class="text-danger"></span>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="EmailId" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="EmailId" name="EmailId" value="@Model.Item1?.EmailId" />
+                                <div class="mb-3">
+                                    <label for="EmailId" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="EmailId" name="EmailId" value="@Model.Item1?.EmailId" />
+                                    <span asp-validation-for="Item1.EmailId" class="text-danger"></span>
+                                    <span id="EmailIdError" class="text-danger" style="display:none;"></span>
+                                </div>
+ 
+
+                           @*  <div class="mb-3">
+                                <label asp-for="Item1.EmailId" class="form-label"></label>
+                                <input asp-for="Item1.EmailId" class="form-control" />
                                 <span asp-validation-for="Item1.EmailId" class="text-danger"></span>
-                                <span id="EmailIdError" class="text-danger" style="display:none;"></span>
-                            </div>
+                            </div> *@
+
 
                             <div class="mb-3">
                                 <label for="PhoneNo" class="form-label">Phone Number</label>
@@ -279,9 +85,19 @@
 
                             <div class="mb-3">
                                 <label for="Password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="Password" name="Password" />
+                                <input type="password" class="form-control" id="Password" name="Password" readonly />
                                 <span asp-validation-for="Item1.Password" class="text-danger"></span>
-                            </div>
+                                <span id="Passworderror" class="text-danger" style="display:none;"></span>
+
+                            </div> 
+
+
+                          @*   <div class="mb-3">
+                                <label asp-for="Item1.Password" class="form-label"></label>
+                                <input type="password" asp-for="Item1.Password" class="form-control" />
+                                <span asp-validation-for="Item1.Password" class="text-danger"></span>
+                            </div> *@
+
 
                             <div class="mb-3">
                                 <label for="Role" class="form-label">AssignTo</label>
@@ -380,12 +196,21 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+
    
      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-     @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script> *@
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+   
+
 
     <script>
+
+       
 
         $(document).ready(function () {
             $("#EmailId, #PhoneNo,#Address,#Password,#Name,#Username").on("input", function () {
@@ -406,6 +231,38 @@
                     errorSpan.text("").hide();
                 }
             });
+
+
+           $("#Password").on("input", function () {
+    var value = $(this).val().trim();
+    var errorSpan = $("#Passworderror");
+
+    // Regex for your password rules:
+    var passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@@$!%*?&]).{8,}$/;
+
+    if (!passwordRegex.test(value)) {
+        errorSpan
+            .html("Password must be at least 8 characters long, contain:<br>- 1 uppercase letter<br>- 1 lowercase letter<br>- 1 number<br>- 1 special character (@@ $ ! % * ? &)")
+            .css("color", "red")
+            .show();
+    } else {
+        errorSpan.text("").hide();
+    }
+});
+
+      $("#EmailId").on("input", function () {
+                var value = $(this).val().trim();
+                var errorSpan = $("#EmailIdError");
+                var emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+                if (!emailPattern.test(value)) {
+                    errorSpan.text("Invalid email format").css("color", "red").show();
+                } else {
+                    errorSpan.text("").hide();
+                }
+            });
+
+
 
             $("#EmailId, #PhoneNo, #Username").on("blur", function () {
                 var field = $(this).attr("id");
@@ -443,10 +300,15 @@
                 $("#message").text("");
                 $("#usernameInput").focus();
             });
+                     let inputTimeout;
 
             // On username input blur (or you can change event to 'change' or a button)
             $("#usernameInput").on('input', function () {
-                var username = $(this).val().trim();
+                        clearTimeout(inputTimeout);
+                const self = this;
+
+                inputTimeout = setTimeout(function () {
+                var username = $(self).val().trim();
                 console.log(username);
                 if(username){
                     // Call server to get status for username
@@ -492,14 +354,82 @@
                     $("#statusSelect").val("");
                     $("#message").text("");
                 }
+
+                        }, 3000); // ✅ 4 seconds delay
             });
+
+             function generatePassword() {
+        const name = $("#Name").val().trim();
+        const email = $("#EmailId").val().trim();
+        const phone = $("#PhoneNo").val().trim();
+        const address = $("#Address").val().trim();
+        const employeeId = $("#EmployeeId").val().trim();
+
+        if (!name || !email || !phone || !address || !employeeId) {
+            $("#Password").val("");
+            $("#PasswordStatus").text("");
+            return;
+        }
+
+        const initials = name.toLowerCase().split(' ').map(w => w[0]).join('').substring(0, 2);
+        const addressPart = address.toLowerCase().replace(/\s+/g, '').substring(0, 3);
+        const emailPart = email.substring(0, 2).toUpperCase();
+        const empPart = employeeId.toLowerCase().substring(0, 2);
+
+        const upper = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        const lower = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+        const number = Math.floor(10 + Math.random() * 90);
+        const specialChars = "@@$!%*?&";
+        const special = specialChars[Math.floor(Math.random() * specialChars.length)];
+
+        const base = (addressPart + emailPart + initials + empPart).substring(0, 4);
+        const password = base + upper + lower + number + special;
+
+        // Check if email already exists
+        $.post("/Users/IsPasswordUniqueEmployee", {
+             email: email,
+        phoneNo: phone,
+        employeeId: employeeId
+        }, function (data) {
+            if (data.exists) {
+                $("#Password").val(data.password);
+                                $("#Passworderror").text(data.message).show();
+            } else if (!data.exists) {
+                $("#Password").val(password);
+                                        $("#Passworderror").text(data.message).show();
+            } else {
+                $("#Password").val("");
+                                        $("#Passworderror").text(data.message).show();
+            }
+        });
+    }
+
+    $("#Name, #PhoneNo, #Address, #EmployeeId, #EmailId").on("input", function () {
+        clearTimeout(window.passwordTimeout);
+
+        const name = $("#Name").val().trim();
+        const phone = $("#PhoneNo").val().trim();
+        const address = $("#Address").val().trim();
+        const employeeId = $("#EmployeeId").val().trim();
+        const email = $("#EmailId").val().trim();
+
+        if (name && phone && address && employeeId && email) {
+            $("#PasswordStatus").text("Waiting 5 seconds to generate password...");
+            window.passwordTimeout = setTimeout(() => {
+                $("#PasswordStatus").text("Generating password...");
+                generatePassword();
+            }, 10000); // 5 seconds delay
+        } else {
+            $("#Password").val("");
+            $("#PasswordStatus").text("");
+        }
+    });
 
             // Save button click
             $("#saveStatusBtn").click(function () {
                 var username = $("#usernameInput").val().trim();
                 var status = $("#statusSelect").val();
 
-                console.log( "hello ye mai use karha hu " + username +""+ status);
                 if(!username){
                     alert("Please enter username");
                     return;
@@ -514,7 +444,6 @@
                     type: 'POST',
                     data: { username: username, status: status },
                     success: function(response) {
-                        console.log("yaha undefined araha hai " + response.status);
                         if(response.status || response.username)
                         {
                            $("#message").text("Status updated successfully")
@@ -527,7 +456,7 @@
              });
 
                    $("table tbody tr").each(function () {
-            var rowUsername = $(this).find("td:nth-child(3)").text().trim(); // 3rd column is Username
+            var rowUsername = $(this).find("td:nth-child(4)").text().trim(); // 3rd column is Username
             if (rowUsername === username) {
                 $(this).find("td:last").text(status); // last column is isActive
             }
@@ -556,7 +485,7 @@
                  "border-radius": "5px"
              });
 
-             resetStatusForm();
+              resetStatusForm();
                     }
                 });
             });
@@ -568,12 +497,15 @@
                 $("#message").fadeOut(300, function () {
                     $(this).text("").removeAttr("style").show();
                 });
-            }, 2000); // 2 seconds wait so user can read the message
+            }, 5000); // 5 seconds wait so user can read the message
         }
 
 
 
         });
     </script>
+
+   
+
 </body>
 </html>

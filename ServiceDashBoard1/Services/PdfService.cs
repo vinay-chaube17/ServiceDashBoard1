@@ -15,6 +15,17 @@ using Path = System.IO.Path;
 
 namespace ServiceDashBoard1.Services
 {
+
+    // This service generates a complaint PDF using iText7.
+    // It adds the company logo, a title, and a table with complaint details.
+    // Fonts are set to regular and bold where needed.
+    // Logo is fetched from wwwroot/images folder.
+    // Output is returned as a byte array (you can save it or send via email).
+    // Note: Uses basic layout settings with minimal margins to fit more content.
+
+
+
+
     public class PdfService
     {
         private readonly IWebHostEnvironment _env;

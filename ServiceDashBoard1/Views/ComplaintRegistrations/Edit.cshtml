@@ -3,6 +3,7 @@
 
 @{
     var selectedSubProblems = ViewBag.SelectedSubProblems ?? "";  // Null hone pe empty string set kar raha hai
+    var userRole = Context.Session.GetString("Role")?.Trim().ToLower();
 }
 
 <h1 class="text-center mb-4">
@@ -19,14 +20,14 @@
 
             <!-- Machine Serial Number -->
             <div class="mb-3">
-                <label asp-for="MachineSerialNo" class="form-label fw-semibold"></label>
+                <label asp-for="MachineSerialNo" class="form-label fw-semibold">Machine Serialno.</label>
                 <input asp-for="MachineSerialNo" class="form-control" readonly />
                 <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
             </div>
 
             <!-- Company Name -->
             <div class="mb-3">
-                <label asp-for="CompanyName" class="form-label fw-semibold"></label>
+                <label asp-for="CompanyName" class="form-label fw-semibold">Company Name</label>
                 <input asp-for="CompanyName" class="form-control" readonly />
                 <span asp-validation-for="CompanyName" class="text-danger"></span>
             </div>
@@ -54,14 +55,14 @@
 
             <!-- Contact Person -->
             <div class="mb-3">
-                <label asp-for="ContactPerson" class="form-label fw-semibold"></label>
+                <label asp-for="ContactPerson" class="form-label fw-semibold">Contact Person</label>
                 <input asp-for="ContactPerson" class="form-control" />
                 <span asp-validation-for="ContactPerson" class="text-danger"></span>
             </div>
 
             <!-- Complaint Description -->
             <div class="mb-3">
-                <label asp-for="ComplaintDescription" class="form-label fw-semibold"></label>
+                <label asp-for="ComplaintDescription" class="form-label fw-semibold">Complaint Description</label>
                 <input asp-for="ComplaintDescription" class="form-control" />
                 <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
             </div>
@@ -71,22 +72,22 @@
                 <label class="form-label fw-semibold">Upload Image</label>
                 <input type="file" id="imageUpload" class="form-control" accept="image/*" />
                 <input type="hidden" asp-for="ImageBase64" id="ImageBase64" />
+                <span asp-validation-for="ImageBase64" class="text-danger"></span> <!-- ✅ Add this line -->
+
             </div>
 
             <!-- Preview Existing Image -->
             <div class="mb-3">
-                @if (!string.IsNullOrEmpty(Model.ImageBase64?.ToString()))
-                {
+                
                     <div class="d-flex align-items-center gap-3">
                         <img id="previewImage" src="data:image/png;base64,@Model.ImageBase64"
-                             class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
-                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeUploadedImage()">❌ Remove</button>
+                        class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                    <button type="button" id="removeImage" class="btn btn-outline-danger btn-sm" onclick="removeUploadedImage()">❌ Remove</button>
                     </div>
-                }
-                else
-                {
-                    <p class="text-muted">No image uploaded</p>
-                }
+                
+                
+                    <p class="text-muted  no-image-text ">No image uploaded</p>
+                
             </div>
 
             <!-- Main Problems -->
@@ -95,12 +96,14 @@
                 <input asp-for="SelectedMainProblems" class="form-control" id="SelectedMainProblems" readonly />
                 <input type="hidden" id="HiddenMainProblems" />
                 <div id="mainProblemCheckboxes" class="mt-2">
+                   
                     @foreach (var mainProblem in ViewBag.MainProblems)
                     {
                         <div class="form-check me-3">
                             <input type="checkbox" class="form-check-input main-problem-checkbox" value="@mainProblem.Value" id="main_@mainProblem.Value">
                             <label class="form-check-label" for="main_@mainProblem.Value">@mainProblem.Text</label>
                         </div>
+                    
                     }
                 </div>
             </div>
@@ -113,20 +116,26 @@
                 <div id="subProblemCheckboxes" class="mt-2"></div>
             </div>
 
-            <!-- Role Selection -->
-            <div class="mb-3 col-md-6">
-                <label for="Role" class="form-label fw-semibold">Assign To</label>
-                @{
-                    var userRole = TempData["UserRole"]?.ToString() ?? "";
-                }
+
+            @if (userRole != "customer")
+            {
+                <!-- Role Selection -->
+                <div class="mb-3 col-md-6">
+                    <label for="Role" class="form-label fw-semibold">Assign To</label>
+                    @{
+                        var userRole = TempData["UserRole"]?.ToString() ?? "";
+                    }
+
                 <select class="form-select" id="roleDropdown" name="Role">
                     <option value="">Select</option>
                     <option value="Sparepart" selected="@(userRole == "Sparepart" ? "selected" : null)">Sparepart</option>
                     <option value="Service Engineer" selected="@(userRole == "Service Engineer" ? "selected" : null)">Service Engineer</option>
                     <option value="Field Engineer" selected="@(userRole == "Field Engineer" ? "selected" : null)">Field Engineer</option>
                 </select>
+                
             </div>
 
+            }
             <!-- Submit & Back -->
             <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mt-4">
                 <input type="submit" value="Submit" class="btn btn-success px-5 me-3"
@@ -136,7 +145,7 @@
                     var role = Context.Session.GetString("Role") ?? "Unknown";
                 }
 
-                @if (role == "Coordinator")
+                @if (role == "coordinator")
                 {
                     <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary px-4">Back to Coordinator Page</a>
                 }
@@ -155,6 +164,20 @@
 
   
           $(document).ready(function () {
+
+                       var base64 = $("#previewImage").attr("src");
+
+            if (!base64 || base64 === "data:image/png;base64," || base64.trim() === "") {
+                // Image not present
+                $("#previewImage").hide();
+                $("#removeImage").hide();
+                $(".no-image-text").show();
+            } else {
+                // Image is present
+                $("#previewImage").show();
+                $("#removeImage").show();
+                $(".no-image-text").hide();
+            }
 
                                  $("#imageUpload").change(function () {
                     var file = this.files[0];
@@ -216,7 +239,6 @@
                                     }
                                 }
 
-                              console.log("Resized Image Size:", width, "x", height);
 
                                 canvas.width = width;
                                 canvas.height = height;
@@ -228,12 +250,13 @@
                                     compressedReader.onloadend = function () {
                                         var compressedBase64 = compressedReader.result.split(',')[1];
 
-                              console.log("Compressed Base64 Length:", compressedBase64.length);
 
 
-                                        $("#imageBase64").val(compressedBase64);
+                                        $("#ImageBase64").val(compressedBase64);
                                         $("#previewImage").attr("src", compressedReader.result).show();
                                         $("#removeImage").fadeIn();
+                                       $(".no-image-text").hide();  // ✅ Hide the "No image uploaded" text
+
                                     };
                                     compressedReader.readAsDataURL(blob);
                                 }, "image/webp", 0.4); // ✅ WebP with 50% compression
@@ -247,10 +270,12 @@
 
                      console.log("Image removed!");
 
-                    $("#imageBase64").val("");
+                    $("#ImageBase64").val("");
                     $("#previewImage").attr("src", "").hide();
                     $("#imageUpload").val("");
                     $("#removeImage").hide();
+                    $(".no-image-text").show();  // ✅ Show it again when image is removed
+
                 });
 
     let isLoaded = false;  // ✅ Flag to prevent duplicate calls
@@ -259,28 +284,29 @@
         let selectedMainProblemNames = $("#SelectedMainProblems").val().split(",").map(s => s.trim());
 
         $(".main-problem-checkbox").each(function () {
-            let checkboxText = $(this).next("label").text().trim(); // Checkbox ke label ka text
+                    let checkboxText = $(this).next("label").text().trim(); // Label text displayed next to the checkbox
+
 
 console.log("Main Problem Checkbox Text:", checkboxText);
 
             if (selectedMainProblemNames.includes(checkboxText)) {
-                $(this).prop("checked", true);  // ✅ Checkbox ko tick karega
+                        $(this).prop("checked", true); // Tick the checkbox by default
 
-console.log("✅ Main Problem Checked:", checkboxText);
+
 
             }
         });
 
                  updateSelectedMainProblems();
-       
-        // ✅ Page load pe sub problems bhi load karega
-        let selectedMainProblemIds = $(".main-problem-checkbox:checked").map(function () {
+
+        // Sub problems will also be loaded when the page loads
+                let selectedMainProblemIds = $(".main-problem-checkbox:checked").map(function () {
             return $(this).val();
         }).get();
 
 
 
-         // ✅ Yahan pehle se `isLoaded` check karna zaroori hai
+        // Important to check `isLoaded` here first
 
             if (!isLoaded && selectedMainProblemIds.length > 0) {
             isLoaded = true;  // ✅ Flag set karo
@@ -298,13 +324,11 @@ console.log("🔍 Before API Call - HiddenSubProblems:", $("#HiddenSubProblems")
 
                     return;
                 }
-console.log("🔄 ye page kitne bar load horaha hai ye batane k liye us hoga console  loadSubProblems Called, Selected IDs:", selectedMainProblems);
 
                          let previouslySelected = $(".sub-problem-checkbox:checked").map(function () {
                        return $(this).val();
                        }).get();
 
-console.log("💾 Preserved Selected Sub-Problems:", previouslySelected);
 
  
                 $.ajax({
@@ -314,10 +338,9 @@ console.log("💾 Preserved Selected Sub-Problems:", previouslySelected);
                     traditional: true,  // ✅ Ensures list is passed properly
                     success: function (response) {
 
-                         //  BACKEND RESPONSE BACKEND ME PRINT KARO 
-console.log(" AFTER API Response:", response);
+                        
 
-            console.log("After API Call - HiddenSubProblems:", HiddenSubProblems);
+            
 
                                
                          $("#subProblemCheckboxes").html("");
@@ -339,7 +362,6 @@ console.log(" AFTER API Response:", response);
                                 $("#subProblemCheckboxes").append(checkbox);
                             });
                         });
-console.log("🔍 Generated Checkboxes:", $("#subProblemCheckboxes").html());
 
 
                         // ✅ Previously selected sub problems ko check karega
@@ -347,8 +369,7 @@ console.log("🔍 Generated Checkboxes:", $("#subProblemCheckboxes").html());
 
                      let selectedSubProblems = $("#HiddenSubProblems").val().split(",").map(s => s.trim());
 
-console.log("🔍 HiddenSubProblems Value 098765432:", $("#HiddenSubProblems").val());
-console.log("🔍 Selected SubProblems After Split:", selectedSubProblems);
+
 
         //                  let checkboxValue = $(this).val().trim(); ✅ ID from checkbox
         //                      console.log("Checkbox Value:", checkboxValue.trim().toLowerCase());
@@ -358,7 +379,6 @@ console.log("🔍 Selected SubProblems After Split:", selectedSubProblems);
        $(".sub-problem-checkbox").each(function () {
                     let checkboxText = $(this).next("label").text().trim().replace(/_/g, " "); // Get label text of the checkbox
 
-console.log("🔍 Checking Checkbox Text:", checkboxText);
 
             let matchedSubproblem = selectedSubProblems.find(sub => sub.replace(/_/g, " ").trim().toLowerCase() === checkboxText.toLowerCase());
 
@@ -399,7 +419,6 @@ console.log("✅ Main Problem Changed, isLoaded Resetting...");
         });
 
                     $(document).on("change", "#subProblemCheckboxes .sub-problem-checkbox", function () {
-console.log("🟢 Sub-Problem Checkbox Changed:", $(this).next("label").text());
             updateSelectedSubProblems();
         });
 
@@ -430,7 +449,6 @@ console.log("🟢 Sub-Problem Checkbox Changed:", $(this).next("label").text());
 
 
                 function updateSelectedMainProblems() {
-console.log("🟢 updateSelectedMainProblems() called!");
 
             let selectedTexts = $(".main-problem-checkbox:checked").map(function () {
                 return $(this).next("label").text();
@@ -445,18 +463,15 @@ console.log("🟢 updateSelectedMainProblems() called!");
             if (inputField) {
                 adjustWidth(inputField);
             }
-console.log("🔵 HiddenMainProblems Updated:", $("#HiddenMainProblems").val());
         }
 
                  function updateSelectedSubProblems() {
 
-console.log("🟢 updateSelectedSubProblems() called!");  // ✅ Check if function runs
 
                 let selectedTexts = $(".sub-problem-checkbox:checked").map(function () {
                     return $(this).next("label").text();
                 }).get();
 
-console.log("🟡 Selected SubProblem Texts:", selectedTexts);  // ✅ Debug Selected Texts
 
          let finalText = selectedTexts.length > 0 ? selectedTexts.join(",  ") : "";
 
@@ -473,7 +488,6 @@ console.log("🟡 Selected SubProblem Texts:", selectedTexts);  // ✅ Debug Sel
              adjustWidth(inputField);
          }
 
-console.log("🔵 HiddenSubProblems Updated:", $("#HiddenSubProblems").val()); // ✅ Check Updated Value
 
             }
 
@@ -510,12 +524,13 @@ console.log("🔵 HiddenSubProblems Updated:", $("#HiddenSubProblems").val()); /
             imageInput.value = "";
             imageInput.type = "text";  // ✅ Force reset
             imageInput.type = "file";  // ✅ Re-enable file input
-
+             $(".no-image-text").show();
 
         let removeBtn = document.getElementById("removeImage");
             if (removeBtn) {
                 removeBtn.style.display = "none";
-            }
+                       
+                    }
          }
       
     </script>

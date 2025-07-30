@@ -4,6 +4,8 @@ using ServiceDashBoard1.Models;
 
 namespace ServiceDashBoard1.Services
 {
+    //This service class is used to generate unique employeeid automatically when Co-Ordinator register First time 
+    // but this service currently not is use because we are put it in register textbox manually
     public class EmployeeIdGenerator
     {
 

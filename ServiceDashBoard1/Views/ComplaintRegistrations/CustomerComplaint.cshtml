@@ -1,0 +1,439 @@
+﻿@using ServiceDashBoard1.Data
+@model ComplaintRegistrationViewModel
+
+@{
+    ViewData["Title"] = "Create";
+    var userRole = Context.Session.GetString("Role")?.Trim().ToLower();
+
+}
+
+
+<h1 class="text-center ">
+    <i class="bi bi-pencil-square me-2"></i> Register Your Complaint
+</h1>
+
+
+
+<div>
+    <a asp-controller="ComplaintRegistrations" asp-action="CustomerComplaintIndex" class="btn btn-primary mx-5 ">Back to DashBoard</a>
+</div>
+
+<div class="text-center my-3 d-flex justify-content-center">
+    <input type="text" id="searchMachineSerialNo" class="form-control w-50 me-2" placeholder="Enter Machine Serial Number" />
+    <button id="searchBtn" class="btn btn-primary">Enter</button>
+</div>
+<span id="searchError" class="text-danger d-block mt-2 text-center" style="display: none;"></span>
+
+
+<hr />
+<div class="container my-5">
+    <div class="card shadow-lg rounded-4 p-4">
+
+        <form asp-controller="ComplaintRegistrations" asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <!-- Machine Serial No -->
+            <div class="mb-3">
+                <label asp-for="MachineSerialNo" class="form-label fw-semibold"></label>
+                <input asp-for="MachineSerialNo" class="form-control" readonly />
+                <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
+            </div>
+
+            <!-- Company Name -->
+            <div class="mb-3">
+                <label asp-for="CompanyName" class="form-label fw-semibold"></label>
+                <input asp-for="CompanyName" class="form-control" readonly />
+                <span asp-validation-for="CompanyName" class="text-danger"></span>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label fw-semibold"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="mb-3">
+                <label asp-for="PhoneNo" class="form-label fw-semibold"></label>
+                <input asp-for="PhoneNo" class="form-control" />
+                <span asp-validation-for="PhoneNo" class="text-danger"></span>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label fw-semibold"></label>
+                <input asp-for="Address" class="form-control" readonly />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <!-- Contact Person -->
+            <div class="mb-3">
+                <label asp-for="ContactPerson" class="form-label fw-semibold"></label>
+                <input asp-for="ContactPerson" class="form-control" />
+                <span asp-validation-for="ContactPerson" class="text-danger"></span>
+            </div>
+
+            <!-- Complaint Description -->
+            <div class="mb-3">
+                <label asp-for="ComplaintDescription" class="form-label fw-semibold"></label>
+                <input asp-for="ComplaintDescription" class="form-control" />
+                <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Upload Image</label>
+                <input type="file" id="imageUpload" class="form-control" accept="image/png, image/jpeg" />
+                <input type="hidden" asp-for="ImageBase64" id="imageBase64" />
+                <span id="imageError" class="text-danger" style="display: none;"></span>
+                <span asp-validation-for="ImageBase64" class="text-danger"></span>
+
+                <img id="previewImage" src="" alt="Image Preview" class="img-thumbnail mt-2" style="max-width: 200px; display: none;" />
+                <button type="button" id="removeImage" class="btn btn-sm btn-outline-danger mt-2" style="display: none;">❌ Remove</button>
+            </div>
+
+            <!-- Main Problems -->
+            <div class="mb-3">
+                <label asp-for="SelectedMainProblems" class="form-label fw-semibold">Main Problems</label>
+                <select id="SelectedMainProblems" asp-for="SelectedMainProblems" asp-items="ViewBag.MainProblems" class="form-select" multiple></select>
+                <div id="MainProblemCheckboxes" class="mt-2"></div>
+                <span asp-validation-for="SelectedMainProblems" class="text-danger"></span>
+            </div>
+
+            <!-- Sub Problems (Moved Just Below Main) -->
+            <div class="mb-3">
+                <input type="hidden" id="HiddenSubProblems" name="SelectedSubProblems" />
+                <label asp-for="SelectedSubProblems" class="form-label fw-semibold">Sub Problems</label>
+                <select id="SelectedSubProblems" asp-for="SelectedSubProblems" asp-items="ViewBag.SubProblems" class="form-select" multiple></select>
+                <div id="SubProblemCheckboxes" class="mt-2"></div>
+                <span asp-validation-for="SelectedSubProblems" class="text-danger"></span>
+            </div>
+
+            
+
+            <!-- Buttons -->
+            <div class="d-flex flex-column flex-md-row justify-content-center gap-2 mt-4">
+                <input type="submit" name="submitType" value="customer" class="btn btn-success px-5 me-3"
+                       onclick="return confirm('Are you sure you want to submit?');" />
+                       </div>
+        </form>
+    </div>
+</div>
+
+@* <div> *@
+@*     <a asp-controller="ComplaintRegistrations" asp-action="Index">Back to List</a> *@
+@* </div> *@
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script type="text/javascript">
+
+
+
+                        $(document).ready(function () {
+
+
+                                    $('form').submit(function (e) {
+                    if ($("#imageBase64").val().trim() === "") {
+                        $("#imageError").text("Image is required.").show();
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                                 $("#imageUpload").change(function () {
+                    var file = this.files[0];
+
+                     console.log("File selected:", file);
+
+                    $("#imageError").text("").hide();
+                    $("#previewImage").hide();
+                    $("#removeImage").hide();
+
+                    if (file) {
+                        var fileType = file.type;
+                        var fileSize = file.size;
+
+                   console.log("Original File Size:", fileSize, "bytes");
+
+
+
+                        var allowedTypes = ["image/jpeg", "image/png"];
+                        if (!allowedTypes.includes(fileType)) {
+
+                             console.error("Invalid file type!");
+
+                            $("#imageError").text("Only JPG and PNG images are allowed.").show();
+                            return;
+                        }
+
+                        var maxSize = 2 * 1024 * 1024; // 2MB
+                        if (fileSize > maxSize) {
+                            $("#imageError").text("File size must be less than 2MB.").show();
+                            return;
+                        }
+
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            var img = new Image();
+                            img.src = e.target.result;
+
+                            img.onload = function () {
+                                var canvas = document.createElement("canvas");
+                                var ctx = canvas.getContext("2d");
+
+                                var maxWidth = 100; // ✅ Reduced width
+                                var maxHeight = 80; // ✅ Reduced height
+                                var width = img.width;
+                                var height = img.height;
+
+                              console.log("Original Image Size:", width, "x", height);
+
+
+
+                                if (width > height) {
+                                    if (width > maxWidth) {
+                                        height *= maxWidth / width;
+                                        width = maxWidth;
+                                    }
+                                } else {
+                                    if (height > maxHeight) {
+                                        width *= maxHeight / height;
+                                        height = maxHeight;
+                                    }
+                                }
+
+                              console.log("Resized Image Size:", width, "x", height);
+
+                                canvas.width = width;
+                                canvas.height = height;
+                                ctx.drawImage(img, 0, 0, width, height);
+
+                                // ✅ Convert to WebP for smaller Base64 size
+                                canvas.toBlob(function (blob) {
+                                    var compressedReader = new FileReader();
+                                    compressedReader.onloadend = function () {
+                                        var compressedBase64 = compressedReader.result.split(',')[1];
+
+                              console.log("Compressed Base64 Length:", compressedBase64.length);
+
+
+                                        $("#imageBase64").val(compressedBase64);
+                                        $("#previewImage").attr("src", compressedReader.result).show();
+                                        $("#removeImage").fadeIn();
+                                    };
+                                    compressedReader.readAsDataURL(blob);
+                                }, "image/webp", 0.4); // ✅ WebP with 50% compression
+                            };
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+
+                $("#removeImage").click(function () {
+
+                     console.log("Image removed!");
+
+                    $("#imageBase64").val("");
+                    $("#previewImage").attr("src", "").hide();
+                    $("#imageUpload").val("");
+                    $("#removeImage").hide();
+                });
+
+
+
+
+                    // 🔹 Convert Main Problems Dropdown to Checkbox List
+                    function convertToCheckbox(dropdownId, containerId) {
+                        var select = $('#' + dropdownId);
+                        var container = $('#' + containerId);
+                        container.empty(); // Ensure no duplicate checkboxes
+
+                        select.find('option').each(function () {
+                            var value = $(this).val();
+                            var text = $(this).text();
+                            if (value) {
+                                var checkbox = $('<input type="checkbox" value="' + value + '" class="mainproblem-checkbox"> ' + text + '<br>');
+
+                                checkbox.change(function () {
+                                    var selectedValues = [];
+                                    $('.mainproblem-checkbox:checked').each(function () {
+                                        selectedValues.push($(this).val());
+                                        console.log("Selected MAin Problems:", selectedValues); // ✅ Debugging
+                                    });
+
+                                    select.val(selectedValues).change(); // ✅ Trigger change event to fetch Sub Problems
+                                });
+
+                                container.append(checkbox);
+                            }
+                        });
+
+                        select.hide(); // Hide the original dropdown
+                    }
+
+                    // 🔹 On Main Problem Selection, Fetch and Show Sub Problems as Checkboxes
+                    $('#SelectedMainProblems').change(function () {
+                        var mainProblemIds = $(this).val(); // Get selected values (array)
+
+                                // ✅ Preserve already selected sub problems
+                let previouslySelected = $('#HiddenSubProblems').val();
+                previouslySelected = previouslySelected ? previouslySelected.split(",") : [];
+
+                        if (mainProblemIds.length > 0) {
+                            $.ajax({
+                                url: '@Url.Action("GetSubProblems", "ComplaintRegistrations")',
+                                type: 'GET',
+                                data: { mainProblemIds: mainProblemIds },
+                                traditional: true,  // ✅ Ensures array is sent properly
+                                success: function (data) {
+
+
+                                      
+
+                                         var container = $('#SubProblemCheckboxes');
+                                         container.empty(); // Clear previous subproblems
+
+
+                                    // console.log("Received Data:", data);
+
+                                    $.each(data, function (i, item) {
+
+                                          
+                                       
+
+
+                                        container.append('<h4>' + item.mainProblem+ '</h4>');
+                                        // var checkbox = $('<input type="checkbox" value="' + item.value + '" class="subproblem-checkbox"> ' + item.text + '<br>');
+
+                                         $.each(item.subProblems, function (j, subItem) {
+                                console.log("Sub Problem:", subItem.text);
+
+                                    var isChecked = previouslySelected.includes(subItem.value) ? "checked" : ""; // ✅ Preserve selected state
+
+
+                                    var checkbox = $(`<input type="checkbox" value="${subItem.value}" class="subproblem-checkbox" ${isChecked}> ${subItem.text}<br>`);
+
+
+
+                                        checkbox.change(function () {
+                                            var selectedValues = [];
+                                            $('.subproblem-checkbox:checked').each(function () {
+                                                selectedValues.push($(this).val());
+                                            });
+
+                                             $('#HiddenSubProblems').val(selectedValues.join(','));  // ✅ Hidden field me update
+
+
+                                                });
+
+                                        container.append(checkbox);
+                                    });
+                                    });
+                                   $('#SelectedSubProblems').hide(); // Hide the original dropdown
+                                }
+                            });
+                        } else {
+                            $('#SubProblemCheckboxes').empty(); // Clear if no main problem selected
+                        }
+                    });
+
+
+
+                         $('form').submit(function () {
+
+
+                        // Check if image is uploaded
+                // if ($("#imageBase64").val().trim() === "") {
+                //     alert("You have to select an image. It's mandatory.");
+                //     e.preventDefault(); Stop form from submitting
+                //     return false;
+                // }
+
+
+
+
+                $('#HiddenSubProblems').val($('#HiddenSubProblems').val().split(',')); // ✅ Ensure array format before submit
+
+
+                  
+        
+
+                });
+
+
+                    // 🔹 Convert Main Problems Dropdown to Checkboxes on Load
+                    convertToCheckbox('SelectedMainProblems', 'MainProblemCheckboxes');
+
+
+
+                            function fetchMachineDetails() {
+                    const serial = $("#searchMachineSerialNo").val().trim();
+
+                         // ✅ Hide previous error message at the start
+                $("#searchError").text("").hide();
+
+                    if (serial === "") {
+                        $("#searchError").text("Please enter a serial number").show();
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '/ComplaintRegistrations/GetDetailsBySerial',
+                        type: 'GET',
+                        data: { serialNo: serial },
+                        success: function (data) {
+                            $("#searchError").hide();
+
+                            $("input[name='MachineSerialNo']").val(serial);
+                            $("input[name='CompanyName']").val(data.companyName);
+                            $("input[name='Email']").val(data.email);
+                            $("input[name='PhoneNo']").val(data.phoneNo);
+                            $("input[name='Address']").val(data.address);
+                            $("input[name='ContactPerson']").val(data.contactPerson);
+                        },
+                        error: function (xhr) {
+                            let msg = xhr.status === 404 ? "Machine not found!" : "Something went wrong!";
+
+                                 // Show pop-up alert
+                             alert(msg);
+                            // $("#searchError").text(msg).show(); ye msg show karaha tha code
+
+                            // Clear fields if not found
+                            $("input[name='MachineSerialNo']").val("");
+                            $("input[name='CompanyName']").val("");
+                            $("input[name='Email']").val("");
+                            $("input[name='PhoneNo']").val("");
+                            $("input[name='Address']").val("");
+                            $("input[name='ContactPerson']").val("");
+
+                              // ✅ Clear the search bar
+                    $("#searchMachineSerialNo").val("");
+                        }
+                    });
+                }
+
+                // 🔹 Button Click
+                $("#searchBtn").click(function () {
+                    fetchMachineDetails();
+                });
+
+                // 🔹 Enter Key Press
+                $("#searchMachineSerialNo").keypress(function (e) {
+                    if (e.which === 13) {
+                        e.preventDefault(); // prevent form submission
+                        fetchMachineDetails();
+                    }
+                });
+         });
+
+                
+
+    </script>
+}
+
+
+

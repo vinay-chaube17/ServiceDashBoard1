@@ -12,19 +12,66 @@
     <i class="bi bi-pencil-square me-2"></i> Register Complaint
 </h1>
 
+@if (userRole != "customer")
+{
+    <div>
+        <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary mx-5">Back to AdminDashBoard</a>
+    </div>
+}
+else
+{
+    <div>
+        <a asp-controller="ComplaintRegistrations" asp-action="CustomerComplaintIndex" class="btn btn-primary mx-5">Back to Dashboard</a>
+    </div>
+}
+
+@if (userRole != "customer")
+{
+
+    <div class="text-center my-3 d-flex justify-content-center">
+        <input type="text" id="searchMachineSerialNo" class="form-control w-50 me-2" placeholder="Enter Machine Serial Number" />
+        <button id="searchBtn" class="btn btn-primary">Enter</button>
+    </div>
+
+    @*  <div class="text-center my-3 d-flex justify-content-center">
+        <input type="text" id="CompanyName" class="form-control w-50 me-2" placeholder="Enter Company Name " />
+        <button id="searchBtn" class="btn btn-primary">Enter</button>
+    </div>  *@
+
+    <span id="searchError" class="text-danger d-block mt-2 text-center" style="display: none;"></span>
+
+}
+else
+{
+    @* <div class="text-center my-3 d-flex justify-content-center">
+        <input type="text" id="searchMachineSerialNo1" class="form-control w-50 me-2" placeholder="Please Customer Enter Machine Serial Number" />
+        <button id="searchBtn1" class="btn btn-primary">Enter</button>
+
+        <!-- Dropdown below input -->
+        <ul id="machineDropdownList" class="list-group position-relative w-50" style="z-index: 1000; top: 100%; left: 0; display: none;">
+            <!-- dynamically filled -->
+        </ul>
 
 
-<div>
-    <a asp-controller="ComplaintRegistrations" asp-action="Index" class="btn btn-primary mx-5 ">Back to AdminDashBoard</a>
+    </div> *@
+    <div class="text-center my-3 d-flex justify-content-center">
+    <div class="position-relative" style="max-width: 300px; width: 90%;">
+        <input type="text" id="searchMachineSerialNo1" class="form-control" placeholder="Please Customer Enter Machine Serial Number" autocomplete="off" readonly/>
+
+        <!-- Dropdown like <select> -->
+        <ul id="machineDropdownList"
+            class="list-group position-absolute w-100"
+            style="z-index: 1050; top: 100%; left: 0; display: none; max-height: 80px; overflow-y: auto; border: 1px solid #ccc; border-top: none;">
+        </ul>
+    </div>
+
+    <button id="searchBtn1" class="btn btn-primary ms-2">Enter</button>
 </div>
 
-<div class="text-center my-3 d-flex justify-content-center">
-    <input type="text" id="searchMachineSerialNo" class="form-control w-50 me-2" placeholder="Enter Machine Serial Number" />
-    <button id="searchBtn" class="btn btn-primary">Enter</button>
-</div>
 <span id="searchError" class="text-danger d-block mt-2 text-center" style="display: none;"></span>
 
 
+}
 <hr />
 <div class="container my-5">
     <div class="card shadow-lg rounded-4 p-4">
@@ -34,15 +81,15 @@
 
             <!-- Machine Serial No -->
             <div class="mb-3">
-                <label asp-for="MachineSerialNo" class="form-label fw-semibold"></label>
-                <input asp-for="MachineSerialNo" class="form-control" readonly />
+                <label asp-for="MachineSerialNo" class="form-label fw-semibold">Machine Serial No.</label>
+                <input asp-for="MachineSerialNo" class="form-control" readonly/>
                 <span asp-validation-for="MachineSerialNo" class="text-danger"></span>
             </div>
 
             <!-- Company Name -->
             <div class="mb-3">
-                <label asp-for="CompanyName" class="form-label fw-semibold"></label>
-                <input asp-for="CompanyName" class="form-control" readonly />
+                <label asp-for="CompanyName" class="form-label fw-semibold">Company Name</label>
+                <input asp-for="CompanyName" class="form-control" readonly/>
                 <span asp-validation-for="CompanyName" class="text-danger"></span>
             </div>
 
@@ -55,7 +102,7 @@
 
             <!-- Phone Number -->
             <div class="mb-3">
-                <label asp-for="PhoneNo" class="form-label fw-semibold"></label>
+                <label asp-for="PhoneNo" class="form-label fw-semibold">Phone No.</label>
                 <input asp-for="PhoneNo" class="form-control" />
                 <span asp-validation-for="PhoneNo" class="text-danger"></span>
             </div>
@@ -69,14 +116,14 @@
 
             <!-- Contact Person -->
             <div class="mb-3">
-                <label asp-for="ContactPerson" class="form-label fw-semibold"></label>
+                <label asp-for="ContactPerson" class="form-label fw-semibold">Contact Person</label>
                 <input asp-for="ContactPerson" class="form-control" />
                 <span asp-validation-for="ContactPerson" class="text-danger"></span>
             </div>
 
             <!-- Complaint Description -->
             <div class="mb-3">
-                <label asp-for="ComplaintDescription" class="form-label fw-semibold"></label>
+                <label asp-for="ComplaintDescription" class="form-label fw-semibold">Complaint Description</label>
                 <input asp-for="ComplaintDescription" class="form-control" />
                 <span asp-validation-for="ComplaintDescription" class="text-danger"></span>
             </div>
@@ -87,6 +134,7 @@
                 <input type="file" id="imageUpload" class="form-control" accept="image/png, image/jpeg" />
                 <input type="hidden" asp-for="ImageBase64" id="imageBase64" />
                 <span id="imageError" class="text-danger" style="display: none;"></span>
+                <span asp-validation-for="ImageBase64" class="text-danger"></span>
 
                 <img id="previewImage" src="" alt="Image Preview" class="img-thumbnail mt-2" style="max-width: 200px; display: none;" />
                 <button type="button" id="removeImage" class="btn btn-sm btn-outline-danger mt-2" style="display: none;">❌ Remove</button>
@@ -109,27 +157,49 @@
                 <span asp-validation-for="SelectedSubProblems" class="text-danger"></span>
             </div>
 
-            <!-- Assign Role -->
-            <div class="mb-3">
-                <label for="Role" class="form-label fw-semibold">Assign To</label>
-                <select class="form-select" id="roleSelect" name="Role" onchange="toggleTextBox()">
-                    <option value="">Please Assign</option>
-                    <option value="Sparepart">Sparepart</option>
-                    <option value="Service Engineer">Service Engineer</option>
-                    <option value="Field Engineer">Field Engineer</option>
-                </select>
-            </div>
+            @if (userRole != "customer")
+            {
+                <!-- Assign Role -->
+                <div class="mb-3">
+                    <label for="Role" class="form-label fw-semibold">Assign To</label>
+                    <select class="form-select" id="roleSelect" name="Role">
+                        <option value="">Please Assign</option>
+                        <option value="Sparepart">Sparepart</option>
+                        <option value="Service Engineer">Service Engineer</option>
+                        <option value="Field Engineer">Field Engineer</option>
+                    </select>
+                </div>
 
-            <!-- Buttons -->
-            <div class ="d-flex flex-column flex-md-row justify-content-center gap-2 mt-4">
-                <input type="submit" value="Submit" class="btn btn-success px-5 me-3"
-                       onclick="return confirm('Are you sure you want to submit?');" />
-                <button type="submit" name="submitType" value="draft"
-                        formaction="@Url.Action("Draft", "ComplaintRegistrations")"
-                        class="btn btn-secondary px-5 me-3">
-                    Save as Draft
-                </button>
-            </div>
+
+                <!-- Buttons -->
+                <div class ="d-flex flex-column flex-md-row justify-content-center gap-2 mt-4">
+                    @* <input type="submit" name="submitType" value="submit" class="btn btn-success px-5 me-3"
+                    onclick="return confirm('Are you sure you want to submit?');" />
+ *@
+                    <input type="button" value="submit"
+                           class="btn btn-success px-5 me-3"
+                           onclick="submitWithApiAndForm(this)" />
+
+                    <button type="submit" name="submitType" value="draft"
+                    formaction="@Url.Action("Draft", "ComplaintRegistrations")"
+                    class="btn btn-secondary px-5 me-3">
+                        Save as Draft
+                    </button>
+                </div>
+            }else
+            {
+
+                
+                    <div class="d-flex flex-column flex-md-row justify-content-center gap-2 mt-4">
+                        <input type="submit" value="Submit" class="btn btn-success px-5 me-3"
+                               onclick="return confirm('Are you sure you want to submit?');" />
+                    </div>
+
+                
+                
+            }
+
+
         </form>
     </div>
 </div>
@@ -144,8 +214,19 @@
     }
     <script type="text/javascript">
 
+             
 
                 $(document).ready(function () {
+
+
+        //                     $('form').submit(function (e) {
+        //     if ($("#imageBase64").val().trim() === "") {
+        //         $("#imageError").text("Image is required.").show();
+        //         e.preventDefault();
+        //         return false;
+        //     }
+        // });
+
 
 
                          $("#imageUpload").change(function () {
@@ -296,31 +377,23 @@
                         success: function (data) {
 
 
-                                 console.log("Full API Response:", data)
-                                 console.log("Received Data:", data);
-                                 console.log("First Item:", data[0]);
 
                                  var container = $('#SubProblemCheckboxes');
                                  container.empty(); // Clear previous subproblems
 
 
-                            // console.log("Received Data:", data);
 
                             $.each(data, function (i, item) {
 
-                                        // console.log("Received Data:", data);
-                                        //   console.log("First Item:", data[0]);
 
-                                  console.log("Item Structure:", item);  // 🔍 Check each item in the array
-                                  console.log("Main Problem:", item.mainProblem);
-                                  console.log("Sub Problems:", item.subProblems);
+
+                                
 
 
                                 container.append('<h4>' + item.mainProblem+ '</h4>');
                                 // var checkbox = $('<input type="checkbox" value="' + item.value + '" class="subproblem-checkbox"> ' + item.text + '<br>');
 
                                  $.each(item.subProblems, function (j, subItem) {
-                        console.log("Sub Problem:", subItem.text);
 
                             var isChecked = previouslySelected.includes(subItem.value) ? "checked" : ""; // ✅ Preserve selected state
 
@@ -338,17 +411,13 @@
                                     // $('#SelectedSubProblems').val(selectedValues);
                                      $('#HiddenSubProblems').val(selectedValues.join(','));  // ✅ Hidden field me update
 
-                                   console.log("Selectedvalues ki value  yaha tak show laregi :", selectedValues); // ✅ Debugging
-                                  console.log("selectedsubproblem me value gai k nahi ye show karega :", $('#SelectedSubProblems').val());
-                                   console.log("selectedsuubprblem hodden me value gae k nahi ye bataega ", $('#HiddenSubProblems').val());
-
+                                 
                                         });
 
                                 container.append(checkbox);
                             });
                             });
                            $('#SelectedSubProblems').hide(); // Hide the original dropdown
-                             // console.log( $('#SelectedSubProblems').hide());
                         }
                     });
                 } else {
@@ -357,7 +426,7 @@
             });
 
 
-           // $('form').submit(function (E) { YE TAB KAM AAEGA JAB HUMME IMAGE COPULSARY RAKHNA HOGA
+           // $('form').submit(function (E) { when we want to use  mandatory Image on that time we will use this code
 
                  $('form').submit(function () {
 
@@ -369,16 +438,31 @@
         //     return false;
         // }
 
+                $('form').submit(function (e) {
+            let selectedProblems = [];
+            $("input.mainproblem-checkbox:checked").each(function () {
+                selectedProblems.push($(this).val());
+            });
+
+            const isOnlyTraining = selectedProblems.length === 1 && selectedProblems[0] === "1"; // "1" = Training
+
+            if (!isOnlyTraining && $("#imageBase64").val().trim() === "") {
+                $("#imageError").text("Image is required.").show();
+                e.preventDefault();
+                return false;
+            }
+
+            $("#imageError").hide(); // Hide error if passed
+        });
+
+
 
 
 
         $('#HiddenSubProblems').val($('#HiddenSubProblems').val().split(',')); // ✅ Ensure array format before submit
 
 
-            console.log("Final Selected Main Problems:", $('#SelectedMainProblems').val());
-            console.log("Final Selected Sub Problems:", $('#SelectedSubProblems').val());
-            console.log("Hidden Sub Problems Before Submit:", $('#HiddenSubProblems').val()); // ✅ Debug before submitting
-
+           
         });
 
 
@@ -387,138 +471,381 @@
 
 
 
-                    function fetchMachineDetails() {
-            const serial = $("#searchMachineSerialNo").val().trim();
+        //             function fetchMachineDetails() {
+        //     const serial = $("#searchMachineSerialNo").val().trim();
 
-                 // ✅ Hide previous error message at the start
-        $("#searchError").text("").hide();
+        //          // ✅ Hide previous error message at the start
+        // $("#searchError").text("").hide();
 
-            if (serial === "") {
-                $("#searchError").text("Please enter a serial number").show();
+        //     if (serial === "") {
+        //         $("#searchError").text("Please enter a serial number").show();
+        //         return;
+        //     }
+
+        //     $.ajax({
+        //         url: '/ComplaintRegistrations/GetDetailsBySerial',
+        //         type: 'GET',
+        //         data: { serialNo: serial },
+        //         success: function (data) {
+        //             $("#searchError").hide();
+
+        //             $("input[name='MachineSerialNo']").val(serial);
+        //             $("input[name='CompanyName']").val(data.companyName);
+        //             $("input[name='Email']").val(data.email);
+        //             $("input[name='PhoneNo']").val(data.phoneNo);
+        //             $("input[name='Address']").val(data.address);
+        //             $("input[name='ContactPerson']").val(data.contactPerson);
+        //         },
+        //         error: function (xhr) {
+        //             let msg = xhr.status === 404 ? "Machine not found!" : "Something went wrong!";
+
+        //                  // Show pop-up alert
+        //              alert(msg); 
+        //             // $("#searchError").text(msg).show(); ye msg show karaha tha code 
+
+        //             // Clear fields if not found
+        //             $("input[name='MachineSerialNo']").val("");
+        //             $("input[name='CompanyName']").val("");
+        //             $("input[name='Email']").val("");
+        //             $("input[name='PhoneNo']").val("");
+        //             $("input[name='Address']").val("");
+        //             $("input[name='ContactPerson']").val("");
+
+        //               // ✅ Clear the search bar
+        //     $("#searchMachineSerialNo").val("");
+        //         }
+        //     });
+        // }
+
+        //         // 🔹 Button Click
+        //        $("#searchBtn").click(function () {
+
+        //            fetchMachineDetails();
+
+        //        });
+
+        //                  // 🔹 Enter Key Press
+        //        $("#searchMachineSerialNo").keypress(function (e) {
+        //            if (e.which === 13) {
+        //                e.preventDefault(); // prevent form submission
+        //                fetchMachineDetails();
+        //            }
+        //        });
+
+                function fetchCompanyDetails() {
+                   const MachineserialName = $("#searchMachineSerialNo").val().trim();
+
+            $("#searchError").text("").hide();
+
+                   if (MachineserialName === "") {
+                $("#searchError").text("Please enter a company name").show();
                 return;
             }
 
             $.ajax({
-                url: '/ComplaintRegistrations/GetDetailsBySerial',
+                url: '/api/sap/get-by-company',
                 type: 'GET',
-                data: { serialNo: serial },
+                              data: { MachineserialName: MachineserialName },
                 success: function (data) {
                     $("#searchError").hide();
 
-                    $("input[name='MachineSerialNo']").val(serial);
-                    $("input[name='CompanyName']").val(data.companyName);
-                    $("input[name='Email']").val(data.email);
-                    $("input[name='PhoneNo']").val(data.phoneNo);
-                    $("input[name='Address']").val(data.address);
+                    
+
+
+                           $("input[name='MachineSerialNo']").val(data.machineserialno);
+                           $("input[name='CompanyName']").val(data.companyname);
+                           $("input[name='PhoneNo']").val(data.phoneNo);  // ✅ correct key
+                           $("input[name='Email']").val(data.email);     // ✅ correct casing
+                    $("input[name='ComplaintDescription']").val(data.subject);
+                           $("input[name='Address']").val(data.address);
                     $("input[name='ContactPerson']").val(data.contactPerson);
+
+                                         if (data.alreadyRegistered) {
+
+                                            
+
+                     $("input[name='MachineSerialNo']").val(MachineserialName);
+           $("input[name='CompanyName']").val(data.companyname);
+               $("input[name='Email']").val(data.email);
+           $("input[name='PhoneNo']").val(data.phoneNo);
+           $("input[name='Address']").val(data.address);
+           $("input[name='ContactPerson']").val(data.contactPerson);
+                                         }
                 },
                 error: function (xhr) {
-                    let msg = xhr.status === 404 ? "Machine not found!" : "Something went wrong!";
+                    const msg = xhr.status === 404 ? "Company not found!" : "Something went wrong!";
+                    alert(msg);
 
-                         // Show pop-up alert
-                     alert(msg); 
-                    // $("#searchError").text(msg).show(); ye msg show karaha tha code 
-
-                    // Clear fields if not found
                     $("input[name='MachineSerialNo']").val("");
                     $("input[name='CompanyName']").val("");
                     $("input[name='Email']").val("");
-                    $("input[name='PhoneNo']").val("");
+                           $("input[name='PhoneNo']").val("");
                     $("input[name='Address']").val("");
                     $("input[name='ContactPerson']").val("");
-
-                      // ✅ Clear the search bar
-            $("#searchMachineSerialNo").val("");
+                    $("#CompanyName").val("");
                 }
             });
         }
 
-        // 🔹 Button Click
+        // 🔹 Bind the button and enter key
         $("#searchBtn").click(function () {
-            fetchMachineDetails();
+            fetchCompanyDetails();
         });
 
-        // 🔹 Enter Key Press
-        $("#searchMachineSerialNo").keypress(function (e) {
+        $("#CompanyName").keypress(function (e) {
             if (e.which === 13) {
-                e.preventDefault(); // prevent form submission
-                fetchMachineDetails();
+                e.preventDefault();
+                fetchCompanyDetails();
             }
         });
- });
 
-          function toggleTextBox() {
-               const role = document.getElementById("roleSelect").value;
-               const noteDiv = document.getElementById("fieldEngineerNoteDiv");
 
-               if (role === "Field Engineer") {
-                   noteDiv.classList.remove("d-none");
-               } else {
-                   noteDiv.classList.add("d-none");
+
+                //  function fetchMachineDetails1() {
+                //             const serial = $("#searchMachineSerialNo1").val().trim();
+                //             console.log("serial" + serial);
+
+                //          //✅ Hide previous error message at the start
+                // $("#searchError").text("").hide();
+
+                //     if (serial === "") {
+                //         $("#searchError").text("Please enter a serial number").show();
+                //         return;
+                //     }
+
+                //     $.ajax({
+                //                    url: '/ComplaintRegistrations/GetDetailsBySerialForCustomerRegistration',
+                //         type: 'GET',
+                //         data: { serialNo: serial },
+                //         success: function (data) {
+                //             $("#searchError").hide();
+
+                //             $("input[name='MachineSerialNo']").val(serial);
+                //             $("input[name='CompanyName']").val(data.companyName);
+                //             $("input[name='Email']").val(data.email);
+                //             $("input[name='PhoneNo']").val(data.phoneNo);
+                //             $("input[name='Address']").val(data.address);
+                //             $("input[name='ContactPerson']").val(data.contactPerson);
+                //         },
+                //         error: function (xhr) {
+                //             let msg = xhr.status === 404 ? "Machine not found!" : "Please check your machine serial no.!";
+
+                //                  //Show pop-up alert
+                //              alert(msg);
+                //            // $("#searchError").text(msg).show(); //ye msg show karaha tha code
+
+                //             //Clear fields if not found
+                //             $("input[name='MachineSerialNo']").val("");
+                //             $("input[name='CompanyName']").val("");
+                //             $("input[name='Email']").val("");
+                //             $("input[name='PhoneNo']").val("");
+                //             $("input[name='Address']").val("");
+                //             $("input[name='ContactPerson']").val("");
+
+                //               //✅ Clear the search bar
+                //     $("#searchMachineSerialNo1").val("");
+                //         }
+                //     });
+                // }
+
+                               function fetchMachineDetails1() {
+                          const MachineserialName = $("#searchMachineSerialNo1").val().trim();
+                                                    console.log("fd11");
+
+                   $("#searchError").text("").hide();
+
+                          if (MachineserialName === "") {
+                       $("#searchError").text("Please enter a company name").show();
+                       return;
+                   }
+
+                                             console.log("fd12");
+
+                   $.ajax({
+                       url: '/api/sap/get-by-company',
+                       type: 'GET',
+                                     data: { MachineserialName: MachineserialName },
+                       success: function (data) {
+                           $("#searchError").hide();
+
+
+
+
+
+
+                           $("input[name='MachineSerialNo']").val(data.internalSerialNum);
+                           $("input[name='CompanyName']").val(data.customerName);
+                           $("input[name='PhoneNo']").val(data.bpPhone1);  // ✅ correct key
+                           $("input[name='Email']").val(data.bPeMail);     // ✅ correct casing
+                           $("input[name='ComplaintDescription']").val(data.subject);
+                           $("input[name='Address']").val(data.bpShipToAddress);
+                           $("input[name='ContactPerson']").val(data.contactPerson);
+
+
+
+                                         if (data.alreadyRegistered) {
+
+
+
+                     $("input[name='MachineSerialNo']").val(MachineserialName);
+           $("input[name='CompanyName']").val(data.companyname);
+               $("input[name='Email']").val(data.email);
+           $("input[name='PhoneNo']").val(data.phoneNo);
+           $("input[name='Address']").val(data.address);
+           $("input[name='ContactPerson']").val(data.contactPerson);
+                                         }
+
+                       },
+                       error: function (xhr) {
+                           const msg = xhr.status === 404 ? "Company not found!" : "Something went wrong!";
+                           alert(msg);
+
+                           $("input[name='MachineSerialNo']").val("");
+                           $("input[name='CompanyName']").val("");
+                           $("input[name='Email']").val("");
+                           $("input[name='PhoneNo']").val("");
+                           $("input[name='Address']").val("");
+                           $("input[name='ContactPerson']").val("");
+                           $("#CompanyName").val("");
+                       }
+
+                   });
+               }
+
+                        // 🔹 On input focus → show dropdown
+        $("#searchMachineSerialNo1").on("focus", function () {
+            $.ajax({
+                       url: '/ComplaintRegistrations/GetRegisteredMachinesSerialnoForCustomer',
+                type: 'GET',
+                success: function (res) {
+                    const dropdown = $("#machineDropdownList");
+                    dropdown.empty();
+
+                    if (!res.machines || res.machines.length === 0) {
+                        dropdown.hide();
+                        return;
+                    }
+
+                    // Fill dropdown list
+                    res.machines.forEach(serial => {
+                               dropdown.append(`<li style="
+                   cursor: pointer;
+                   padding: 10px 15px;
+                   background-color: white;
+                   border-bottom: 1px solid #eee;
+                   list-style: none;
+               ">${serial}</li>`);
+                    });
+
+                    dropdown.show();
+                },
+                error: function () {
+                    $("#machineDropdownList").hide();
+                }
+            });
+        });
+
+        // 🔹 On selecting item from dropdown
+        $(document).on("click", "#machineDropdownList li", function () {
+            const selectedSerial = $(this).text();
+            $("#searchMachineSerialNo1").val(selectedSerial);
+            $("#machineDropdownList").hide();
+        });
+
+        // 🔹 Hide dropdown on click outside
+        $(document).on("click", function (e) {
+            if (!$(e.target).closest("#searchMachineSerialNo1, #machineDropdownList").length) {
+                $("#machineDropdownList").hide();
+            }
+        });
+
+       
+
+                  $("#searchBtn1").click(function () {
+
+                   fetchMachineDetails1();
+                   console.log("fd1")
+                });
+
+     
+                        $("#searchMachineSerialNo1").keypress(function (e) {
+                    if (e.which === 13) {
+                        e.preventDefault(); //prevent form submission
+                        fetchMachineDetails1();
+                    }
+                });
+
+
+
+                            window.submitWithApiAndForm = async function (buttonElement) {
+               const confirmed = confirm("Are you sure you want to submit?");
+               if (!confirmed) return;
+
+               // You can send some data from form if needed
+               const requestBody = {
+                   machineSerialNo: document.querySelector('[name="MachineSerialNo"]').value,
+                   companyName: document.querySelector('[name="CompanyName"]').value,
+                         complaintDescription: document.querySelector('[name="ComplaintDescription"]').value
+
+               };
+
+               console.log(requestBody.complaintDescription);
+
+               try {
+                   const response = await fetch("/api/sap/service-calls", {
+                       method: "POST",
+                       headers: {
+                           "Content-Type": "application/json"
+                       },
+                       body: JSON.stringify(requestBody)
+                   });
+
+                   if (!response.ok) {
+                       const error = await response.text();
+                       alert("API call failed: " + error);
+                       return;
+                   }
+
+                   const data = await response.json();
+                   console.log("API Response:", data);
+
+                            // Continue with form submission
+                                  const form = buttonElement.closest("form");
+
+
+                                          // Add hidden input for submitType if needed
+        let submitTypeInput = form.querySelector('input[name="submitType"]');
+        if (!submitTypeInput) {
+            submitTypeInput = document.createElement('input');
+            submitTypeInput.type = 'hidden';
+            submitTypeInput.name = 'submitType';
+            form.appendChild(submitTypeInput);
+        }
+        submitTypeInput.value = 'submit';  // Set correct value
+
+               console.log("Form is being submitted with submitType:", submitTypeInput.value);
+
+                             // ✅ Check validation before submit
+               if (!form.checkValidity()) {
+                   form.reportValidity(); // shows errors
+                   return;
+               }
+
+               // ✅ Now actually submit the form to save to DB
+               form.submit();
+                 
+
+               } catch (err) {
+                   console.error(err);
+                   alert("Something went wrong.");
                }
            }
 
-           // agar page load pe "Field Engineer" select ho to bhi textbox dikhe
-           window.onload = toggleTextBox;
 
 
-//                    Add an event listener to the employee ID input field
-//                    document.getElementById("FieldEngineerNote").addEventListener("input", function () {
-//             var userId = this.value; Get the value from the input field
-//             if (userId !== "") {
-//                 fetch(`/User/GetUserNameById?id=${userId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         Artificial delay with setTimeout (not ideal)
-//                         setTimeout(function () {
-//                             if (data.name) {
-//                                 console.log("User found:", data.name);
-//                                 document.getElementById("FieldEngineerName").value = data.name;
-//                             } else {
-//                                 console.log("User not found:", data);
-//                                 document.getElementById("FieldEngineerName").value = "User not found";
-//                             }
-//                         }, 2000);  Delay of 1000ms (2 second)
-//                     })
-//                     .catch(error => {
-//                         console.error("Error fetching user name:", error);
-//                         document.getElementById("FieldEngineerName").value = "Error";
-//                     });
-//             } else {
-//                 document.getElementById("FieldEngineerName").value = "";
-//             }
-//         });
+ });
 
-//        function sendSMS() {
-//     const Id = document.getElementById("FieldEngineerNote").value;
-//     const employeeName = document.getElementById("FieldEngineerName").value;
-//              const smsButton = document.getElementById("smsbutton");  Get the button element
-
-//     if (Id || employeeName) {
-//         console.log(Id);
-
-//         fetch(`/Users/SendSMS?id=${Id}`)
-//             .then(response => {
-//                 return response.json();  Convert the response to JSON
-//             })
-//             .then(data => {
-//                 console.log("User found 4:", data.name);
-//                 console.log("User found 5:", data.id);
-//                 if (data.success) {  Check if success is true
-//                     alert("SMS sent successfully to " + employeeName);
-//                              smsButton.disabled = true;  Disable the button after SMS is sent
-//                 } else {
-//                     alert("Failed to send SMS.");
-//                 }
-//             })
-//             .catch(error => {
-//                 console.error("Error sending SMS:", error);  Handle errors from fetch or response
-//                 alert("Error sending SMS.");
-//             });
-//     } else {
-//         alert("Please enter a valid Employee ID and ensure Name is correctly populated.");
-//     }
-// }
+   
 
 
     </script>

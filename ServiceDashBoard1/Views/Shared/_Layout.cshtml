@@ -66,7 +66,8 @@
             </main>
 
         </div>
-        @if (!IsSectionDefined("NoFooter"))
+
+       @*  @if (!IsSectionDefined("NoFooter"))
         {
             <footer class="border-top bg-light text-center" style="bottom: 0; width: 100%; padding: 15px; background: radial-gradient(circle at 50% 50%, rgba(255, 221, 85, 0.85), rgba(255, 170, 51, 0.85), rgba(255, 119, 68, 0.85), rgba(221, 85, 51, 0.85), rgba(153, 34, 34, 0.85)); color: white; box-shadow: 0 0 15px rgba(255, 170, 51, 0.4), 0 0 25px rgba(255, 119, 68, 0.3), 0 0 35px rgba(221, 85, 51, 0.2);">
                 <div class="container">
@@ -74,9 +75,9 @@
             </div>
         </footer>
 
-   }
+   } *@
 
-        @RenderSection("NoFooter", required: false)
+         @RenderSection("NoFooter", required: false) 
 
     @* <script src="c:\users\vinay.chaubey\.nuget\packages\bootstrap\5.3.3\contentfiles\any\any\wwwroot\js\bootstrap.min.js"></script> *@
   @*   <script src="~/js/jquery.min.js"></script> *@
@@ -103,8 +104,9 @@
         <script src="~/js/site.js" asp-append-version="true"></script>
 
 
-    @await RenderSectionAsync("Scripts", required: false)
-    </div>
+     @await RenderSectionAsync("Scripts", required: false)
+ 
+</div>
 </body>
 </html>
 
@@ -118,7 +120,6 @@
             bsCollapse = new bootstrap.Collapse(navbar, { toggle: false });
         }
 
-        console.log("Collapse instance:", bsCollapse);  // should log the instance now, NOT null
 
         // Add click listeners to nav-links inside the collapsed navbar
         document.querySelectorAll('.navbar-collapse .nav-link').forEach(function (el) {

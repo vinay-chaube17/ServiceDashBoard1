@@ -6,7 +6,7 @@ namespace ServiceDashBoard1.Models
     public class ServiceModel
     {
         public int Id { get; set; }  // Primary Key
-        public int ComplaintId { get; set; }  // ComplaintRegistration ki Primary Key
+        public int ComplaintId { get; set; }  // ComplaintRegistration model Primary Key but here its acts as a foreign key 
 
         [NotMapped] public string TokenNumber { get; set; }
         [NotMapped] public string MachineSerialNo { get; set; }
@@ -21,16 +21,27 @@ namespace ServiceDashBoard1.Models
 
         [NotMapped] public string MainProblemText { get; set; }
         [NotMapped] public string SubProblemText { get; set; }
-        // ✅ Sirf yeh database me save hoga
+
+        // below property only saved in ServiceModel database 
         [Required(ErrorMessage = "Remark is required.")]
+[Column(TypeName = "TEXT")]
+
         public string Remark { get; set; }
 
         [Required(ErrorMessage = "Final Remark is required if status is Completed.")]
         [DefaultValue("")]
+[Column(TypeName = "TEXT")]
+
         public String? FinalRemark { get; set; } = "";
 
         // ✅ NEW FIELDS for tracking who wrote what
-        public string? RemarkBy { get; set; }         // Username of person who wrote Remark
+[Column(TypeName = "TEXT")]
+
+        public string? RemarkBy { get; set; }
+
+        // Username of person who wrote Remark
+[Column(TypeName = "TEXT")]
+
         public string? FinalRemarkBy { get; set; }    // Username of person who wrote FinalRemark
 
         [NotMapped]
